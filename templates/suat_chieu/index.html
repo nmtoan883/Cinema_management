@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <!-- Form Thêm Suất Chiếu (Để test Trigger) -->
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Thêm Suất Chiếu Mới</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Lưu ý: Nếu nhập trùng giờ ở cùng 1 phòng, Trigger trong Database sẽ chặn và báo lỗi.</p>
+        
+        <form action="/suatchieu/them" method="POST">
+            <div class="form-group">
+                <label>Mã Phim</label>
+                <input type="number" name="ma_phim" required>
+            </div>
+            <div class="form-group">
+                <label>Mã Phòng Chiếu</label>
+                <input type="number" name="ma_phong" required>
+            </div>
+            <div class="form-group">
+                <label>Giờ Bắt Đầu</label>
+                <input type="datetime-local" name="gio_bat_dau" required>
+            </div>
+            <div class="form-group">
+                <label>Giờ Kết Thúc</label>
+                <input type="datetime-local" name="gio_ket_thuc" required>
+            </div>
+            <div class="form-group">
+                <label>Giá Vé Cơ Bản (VNĐ)</label>
+                <input type="number" name="gia_ve" required>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Tạo Suất Chiếu</button>
+        </form>
+    </div>
+
+    <!-- Danh sách Suất Chiếu -->
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem;">Lịch Chiếu Phim</h2>
+        {% if ds_lich %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Phim</th>
+                        <th>Phòng</th>
+                        <th>Bắt Đầu</th>
+                        <th>Kết Thúc</th>
+                        <th>Giá Vé</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in ds_lich %}
+                    <tr>
+                        <td>{{ l.MaSuatChieu }}</td>
+                        <td><strong>{{ l.TenPhim }}</strong></td>
+                        <td>{{ l.TenPhong }}</td>
+                        <td>{{ l.GioBatDau }}</td>
+                        <td>{{ l.GioKetThuc }}</td>
+                        <td style="color: #34d399; font-weight: bold;">{{ "{:,}".format(l.GiaVeCoBan) }}đ</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu lịch chiếu.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

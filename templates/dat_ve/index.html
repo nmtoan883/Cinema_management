@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">🎟️ Đặt Vé & Giao Dịch</h1>
+    <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem auto;">
+        Phân hệ này sử dụng <strong>Database Transaction</strong> để đảm bảo việc tạo Hóa Đơn, thêm Chi Tiết Vé, và Cộng Điểm Tích Lũy được thực hiện an toàn.
+    </p>
+    
+    <form action="/datve/ban-ve" method="POST" style="max-width: 400px; margin: 0 auto;">
+        <button type="submit" class="btn" style="width: 100%; font-size: 1.2rem; padding: 1rem; background: linear-gradient(45deg, #10b981, #059669);">Tiến Hành Bán Vé (Test Transaction)</button>
+    </form>
+</div>
+{% endblock %}

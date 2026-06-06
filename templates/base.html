@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Hệ Thống Rạp Chiếu Phim</title>
+    <meta name="description" content="Hệ thống quản lý rạp chiếu phim hiện đại">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🎬 Cinema DB</a>
+        <div class="nav-links">
+            <a href="/phim" class="{{ 'active' if 'phim' in request.path }}">1. Phim</a>
+            <a href="/rap" class="{{ 'active' if 'rap' in request.path }}">2. Rạp</a>
+            <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">3. Lịch Chiếu</a>
+            <a href="/khachhang" class="{{ 'active' if 'khachhang' in request.path }}">4. Khách Hàng</a>
+            <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">5. Đặt Vé</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        <div class="card">
+            <h1>Chào mừng đến với Hệ Thống Rạp Chiếu Phim</h1>
+            <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+                Hệ thống Quản lý CSDL dành cho đồ án môn học.<br>
+                Được phát triển với <strong>Flask</strong> và <strong>MySQL</strong>. Hãy chọn các phân hệ trên menu để bắt đầu làm việc.
+            </p>
+        </div>
+        {% endblock %}
+    </div>
+</body>
+</html>

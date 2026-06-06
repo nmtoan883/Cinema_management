@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🎬 Quản Lý Phim & Danh Mục</h1>
+        <a href="/phim/them" class="btn">+ Thêm Phim Mới</a>
+    </div>
+
+    {% if ds_phim %}
+    <table>
+        <thead>
+            <tr>
+                <th>Mã Phim</th>
+                <th>Tên Phim</th>
+                <th>Thời Lượng (Phút)</th>
+                <th>Ngày Khởi Chiếu</th>
+                <th>Độ Tuổi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in ds_phim %}
+            <tr>
+                <td>{{ p.MaPhim }}</td>
+                <td><strong>{{ p.TenPhim }}</strong></td>
+                <td>{{ p.ThoiLuong }}</td>
+                <td>{{ p.NgayKhoiChieu }}</td>
+                <td><span style="background: rgba(244,63,94,0.2); color:#f43f5e; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold;">T{{ p.DoTuoi }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu phim trong cơ sở dữ liệu.</p>
+    {% endif %}
+</div>
+{% endblock %}

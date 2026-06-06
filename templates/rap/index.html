@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🏢 Cơ Sở Vật Chất & Phòng Chiếu</h1>
+        <a href="#" class="btn">+ Thêm Phòng</a>
+    </div>
+
+    {% if ds_phong %}
+    <table>
+        <thead>
+            <tr>
+                <th>Mã Phòng</th>
+                <th>Tên Phòng</th>
+                <th>Mã Cụm Rạp</th>
+                <th>Sức Chứa</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in ds_phong %}
+            <tr>
+                <td>{{ p.MaPhong }}</td>
+                <td><strong>{{ p.TenPhong }}</strong></td>
+                <td>{{ p.MaCumRap }}</td>
+                <td>{{ p.SucChua }} Ghế</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu phòng chiếu.</p>
+    {% endif %}
+</div>
+{% endblock %}

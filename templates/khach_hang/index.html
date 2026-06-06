@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 2rem;">
+    <h2 style="margin-bottom: 1.5rem; color: #3b82f6;">Tra Cứu Khách Hàng Bằng SĐT</h2>
+    <form action="/khachhang/tim-kiem" method="GET" style="display: flex; gap: 1rem;">
+        <input type="text" name="sdt" placeholder="Nhập số điện thoại khách hàng..." required style="flex: 1;">
+        <button type="submit" class="btn" style="background: #3b82f6;">Tìm Kiếm</button>
+    </form>
+    
+    {% if ket_qua_tim %}
+    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
+        <h3 style="margin-bottom: 0.5rem; color: #60a5fa;">Kết quả tìm kiếm:</h3>
+        {% for k in ket_qua_tim %}
+        <p><strong>Tên:</strong> {{ k.HoTen }} | <strong>Hạng:</strong> {{ k.TenHang }} | <strong>Điểm:</strong> {{ k.DiemTichLuy }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem;">Danh Sách Khách VIP (Từ View Database)</h2>
+    {% if ds_vip %}
+    <table>
+        <thead>
+            <tr>
+                <th>Mã KH</th>
+                <th>Họ Tên</th>
+                <th>SĐT</th>
+                <th>Điểm Tích Lũy</th>
+                <th>Hạng Thẻ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ds_vip %}
+            <tr>
+                <td>{{ v.MaKH }}</td>
+                <td><strong>{{ v.HoTen }}</strong></td>
+                <td>{{ v.SDT }}</td>
+                <td>{{ v.DiemTichLuy }}</td>
+                <td><span style="background: linear-gradient(45deg, #fbbf24, #f59e0b); color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">{{ v.TenHang }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có khách hàng VIP nào.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2>🍿 Menu Bắp Nước (Dịch Vụ)</h2>
+        <a href="#" class="btn" style="background: #10b981;">+ Thêm Món Mới</a>
+    </div>
+    
+    {% if ds_dv %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+        {% for dv in ds_dv %}
+        <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+                {% if 'Bắp' in dv.TenDichVu %}🍿
+                {% elif 'Nước' in dv.TenDichVu or 'Pepsi' in dv.TenDichVu %}🥤
+                {% else %}🍔{% endif %}
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">{{ dv.TenDichVu }}</h3>
+            <div style="color: #34d399; font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem;">
+                {{ "{:,}".format(dv.GiaBan) }}đ
+            </div>
+            <button class="btn" style="width: 100%; padding: 0.5rem; font-size: 0.9rem;">Sửa giá</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu Bắp Nước trong cơ sở dữ liệu.</p>
+    {% endif %}
+</div>
+{% endblock %}
