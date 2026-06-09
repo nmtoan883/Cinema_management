@@ -2,34 +2,76 @@
 
 {% block content %}
 <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1>🏢 Cơ Sở Vật Chất & Phòng Chiếu</h1>
-        <a href="#" class="btn">+ Thêm Phòng</a>
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / CumRap</p>
+            <h1>Quan ly cum rap</h1>
+            <p class="section-copy">Khai bao chi nhanh rap voi ten rap, dia chi va hotline theo dung cau truc bang CumRap.</p>
+        </div>
+        {% if editing_id %}
+        <a href="{{ url_for('rap.index') }}" class="btn btn-secondary">Tao moi</a>
+        {% endif %}
     </div>
 
-    {% if ds_phong %}
-    <table>
-        <thead>
-            <tr>
-                <th>Mã Phòng</th>
-                <th>Tên Phòng</th>
-                <th>Mã Cụm Rạp</th>
-                <th>Sức Chứa</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in ds_phong %}
-            <tr>
-                <td>{{ p.MaPhong }}</td>
-                <td><strong>{{ p.TenPhong }}</strong></td>
-                <td>{{ p.MaCumRap }}</td>
-                <td>{{ p.SucChua }} Ghế</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu phòng chiếu.</p>
-    {% endif %}
+    <div class="admin-grid">
+        <section class="panel">
+            <h2>{{ 'Cap nhat cum rap' if editing_id else 'Them cum rap' }}</h2>
+            <form method="post" action="{{ url_for('rap.sua_cum_rap', ma_cum_rap=editing_id) if editing_id else url_for('rap.them_cum_rap') }}">
+                <div class="form-group">
+                    <label for="TenCumRap">Ten cum rap</label>
+                    <input id="TenCumRap" name="TenCumRap" type="text" value="{{ form_data.TenCumRap or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="DiaChi">Dia chi</label>
+                    <input id="DiaChi" name="DiaChi" type="text" value="{{ form_data.DiaChi or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="Hotline">Hotline</label>
+                    <input id="Hotline" name="Hotline" type="text" value="{{ form_data.Hotline or '' }}" minlength="9" maxlength="15" inputmode="numeric" pattern="[0-9]{9,15}" required>
+                </div>
+
+                <button type="submit" class="btn">{{ 'Luu thay doi' if editing_id else 'Them cum rap' }}</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Danh sach cum rap</h2>
+            {% if ds_cum_rap %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma</th>
+                        <th>Ten cum rap</th>
+                        <th>Dia chi</th>
+                        <th>Hotline</th>
+                        <th>Tac vu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cum_rap in ds_cum_rap %}
+                    <tr>
+                        <td>{{ cum_rap.MaCumRap }}</td>
+                        <td><strong>{{ cum_rap.TenCumRap }}</strong></td>
+                        <td>{{ cum_rap.DiaChi }}</td>
+                        <td>{{ cum_rap.Hotline }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" class="btn btn-secondary">Sua</a>
+                                <form method="post" action="{{ url_for('rap.xoa_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" onsubmit="return confirm('Ban co chac muon xoa cum rap nay khong?');">
+                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Chua co du lieu cum rap.</p>
+            {% endif %}
+        </section>
+    </div>
 </div>
 {% endblock %}
