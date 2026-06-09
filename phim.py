@@ -136,6 +136,7 @@ def them_phim_moi(
         cursor.close()
         conn.close()
         
+        #hiển thị số phim của một diễn viên
 def dem_so_phim_cua_dien_vien(ma_dien_vien):
     query = """
         SELECT f_DemSoPhimCuaDienVien(%s) AS TongSoPhim
@@ -148,6 +149,7 @@ def dem_so_phim_cua_dien_vien(ma_dien_vien):
 
     return 0
 
+        #Hàm xóa phim
 def xoa_phim(ma_phim):
     conn = database.get_connection()
     cursor = conn.cursor()
@@ -169,6 +171,7 @@ def xoa_phim(ma_phim):
         cursor.close()
         conn.close()
         
+        #Hàm cập nhật phim
 def cap_nhat_phim(
         ma_phim,
         ten_phim,
