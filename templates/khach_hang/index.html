@@ -2,7 +2,10 @@
 
 {% block content %}
 <div class="card" style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1.5rem; color: #3b82f6;">Tra Cứu Khách Hàng Bằng SĐT</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="color: #3b82f6;">Tra Cứu & Quản Lý Khách Hàng</h2>
+        <a href="/khachhang/them" class="btn" style="background: #3b82f6;">+ Đăng Ký Khách Mới</a>
+    </div>
     <form action="/khachhang/tim-kiem" method="GET" style="display: flex; gap: 1rem;">
         <input type="text" name="sdt" placeholder="Nhập số điện thoại khách hàng..." required style="flex: 1;">
         <button type="submit" class="btn" style="background: #3b82f6;">Tìm Kiếm</button>
@@ -51,7 +54,7 @@
 <div class="card" style="margin-top: 2rem;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <h2>🍿 Menu Bắp Nước (Dịch Vụ)</h2>
-        <a href="#" class="btn" style="background: #10b981;">+ Thêm Món Mới</a>
+        <a href="/khachhang/dichvu/them" class="btn" style="background: #10b981;">+ Thêm Món Mới</a>
     </div>
     
     {% if ds_dv %}
@@ -67,7 +70,7 @@
             <div style="color: #34d399; font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem;">
                 {{ "{:,}".format(dv.GiaBan) }}đ
             </div>
-            <button class="btn" style="width: 100%; padding: 0.5rem; font-size: 0.9rem;">Sửa giá</button>
+            <a href="/khachhang/dichvu/sua/{{ dv.MaDichVu }}" class="btn" style="display: block; width: 100%; padding: 0.5rem; font-size: 0.9rem; text-align: center;">Sửa giá</a>
         </div>
         {% endfor %}
     </div>

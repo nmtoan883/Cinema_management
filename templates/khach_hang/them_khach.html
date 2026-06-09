@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2 style="margin-bottom: 1.5rem; color: var(--primary);">👤 Đăng Ký Khách Hàng Mới</h2>
+    
+    <form action="/khachhang/them" method="POST">
+        <div class="form-group">
+            <label>Họ và Tên (*)</label>
+            <input type="text" name="ho_ten" placeholder="Nhập họ tên đầy đủ" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Số Điện Thoại (*)</label>
+            <input type="tel" name="sdt" placeholder="Ví dụ: 0901234567" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="example@gmail.com">
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn" style="flex: 1;">Tạo Khách Hàng</button>
+            <a href="/khachhang" class="btn" style="background: #4b5563; text-align: center;">Hủy Bỏ</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
