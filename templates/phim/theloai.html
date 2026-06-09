@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h1>📂 Danh Mục Thể Loại</h1>
+
+        <a href="/phim/theloai/them" class="btn">
+            + Thêm Thể Loại
+        </a>
+    </div>
+
+    {% if ds_the_loai %}
+    <table>
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Tên Thể Loại</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for tl in ds_the_loai %}
+            <tr>
+                <td>{{ tl.MaTheLoai }}</td>
+                <td>{{ tl.TenTheLoai }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+    <p style="text-align:center;color:gray;">
+        Chưa có thể loại nào.
+    </p>
+    {% endif %}
+
+</div>
+{% endblock %}
