@@ -16,6 +16,9 @@ def index():
     SELECT
         PHIM.MaPhim,
         PHIM.TenPhim,
+        PHIM.ThoiLuong,
+        PHIM.NgayKhoiChieu,
+        PHIM.GioiHanDoTuoi,
         GROUP_CONCAT(THELOAI.TenTheLoai SEPARATOR ', ') AS TheLoai
     FROM PHIM
     LEFT JOIN PHIM_THELOAI
@@ -41,11 +44,17 @@ def them_phim():
     if request.method == 'POST':
 
         ten_phim = request.form['ten_phim']
+        thoi_luong = request.form['thoi_luong']
+        ngay_khoi_chieu = request.form['ngay_khoi_chieu']
+        gioi_han = request.form['gioi_han']
 
         sql = """
         INSERT INTO PHIM
         (
             TenPhim,
+            ThoiLuong,
+            NgayKhoiChieu,
+            GioiHanDoTuoi
         )
         VALUES (%s,%s,%s,%s)
         """
@@ -54,6 +63,9 @@ def them_phim():
             sql,
             (
                 ten_phim,
+                thoi_luong,
+                ngay_khoi_chieu,
+                gioi_han
             )
         )
 
