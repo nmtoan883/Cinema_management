@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+
+    <h1>📂 Thêm Thể Loại Phim</h1>
+
+    <form method="POST">
+
+        <div class="form-group">
+            <label>Tên Thể Loại</label>
+            <input
+                type="text"
+                name="ten_the_loai"
+                placeholder="Ví dụ: Hành động"
+                required>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn">
+                💾 Lưu Thể Loại
+            </button>
+
+            <a href="/phim/theloai"
+               class="btn"
+               style="background:#6b7280;">
+               Hủy
+            </a>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
