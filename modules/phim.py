@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_prefix
+from flask import Blueprint, render_template, request, redirect
 import database
 
 # Đăng ký Blueprint cho module Phim
