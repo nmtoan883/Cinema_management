@@ -15,9 +15,9 @@ Dự án được xây dựng bằng **Python (Flask)** kết hợp với **MySQ
 
 ---
 
-## 👥 Phân Công 5 Phân Hệ (Modules)
+## 👥 Phân (Modules)
 
-Dự án được chia thành 5 module độc lập tương ứng với 5 thành viên để tránh xung đột mã nguồn (Conflict):
+Dự án được chia thành 5 module độc lập:
 
 1. **Phân hệ Phim (`modules/phim.py`):** Quản lý Danh mục phim, Đạo diễn, Diễn viên, Thể loại.
 2. **Phân hệ Rạp (`modules/rap.py`):** Quản lý Cụm rạp, Phòng chiếu, tự động sinh Sơ đồ ghế ngồi.
@@ -71,7 +71,7 @@ Cinema_management/
 ├── cinema_management.sql   # File CSDL tổng (Database Backup)
 ├── requirements.txt        # Danh sách thư viện cần thiết
 │
-├── modules/                # Thư mục Backend (Chứa code Python của 5 thành viên)
+├── modules/                # Thư mục Backend 
 ├── static/                 # Thư mục chứa CSS / Hình ảnh
 └── templates/              # Thư mục chứa giao diện HTML
 ```
