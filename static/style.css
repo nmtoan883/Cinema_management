@@ -76,6 +76,31 @@ body {
     padding: 0 1rem;
 }
 
+.section-tabs {
+    display: inline-flex;
+    gap: 0.5rem;
+    padding: 0.4rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.section-tab {
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.section-tab:hover,
+.section-tab.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+}
+
 .section-heading {
     display: flex;
     justify-content: space-between;
@@ -250,6 +275,10 @@ select:focus {
     padding: 1.5rem;
 }
 
+.panel-span-2 {
+    grid-column: span 2;
+}
+
 .table-actions {
     display: flex;
     gap: 0.75rem;
@@ -283,6 +312,10 @@ select:focus {
 
     .admin-grid {
         grid-template-columns: 1fr;
+    }
+
+    .panel-span-2 {
+        grid-column: span 1;
     }
 
     table {
