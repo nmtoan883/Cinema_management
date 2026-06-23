@@ -53,7 +53,7 @@
 
 <div class="card" style="margin-top: 2rem;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2>🍿 Menu Bắp Nước (Dịch Vụ)</h2>
+        <h2>Menu Bắp Nước (Dịch Vụ)</h2>
         <a href="/khachhang/dichvu/them" class="btn" style="background: #10b981;">+ Thêm Món Mới</a>
     </div>
     
@@ -70,12 +70,47 @@
             <div style="color: #34d399; font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem;">
                 {{ "{:,}".format(dv.GiaBan) }}đ
             </div>
-            <a href="/khachhang/dichvu/sua/{{ dv.MaDichVu }}" class="btn" style="display: block; width: 100%; padding: 0.5rem; font-size: 0.9rem; text-align: center;">Sửa giá</a>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="/khachhang/dichvu/sua/{{ dv.MaDichVu }}" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.9rem; text-align: center;">Sửa</a>
+                <a href="/khachhang/dichvu/xoa/{{ dv.MaDichVu }}" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.9rem; text-align: center; background: #ef4444; color: white;" onclick="return confirm('Bạn có chắc chắn muốn xóa món này không?');">Xóa</a>
+            </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
     <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu Bắp Nước trong cơ sở dữ liệu.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="color: #8b5cf6;">Quản Lý Nhân Sự (Staff)</h2>
+        <a href="/khachhang/nhanvien/them" class="btn" style="background: #8b5cf6;">+ Thêm Nhân Viên</a>
+    </div>
+
+    {% if ds_nv %}
+    <table>
+        <thead>
+            <tr>
+                <th>Mã NV</th>
+                <th>Họ Tên</th>
+                <th>Chức Vụ</th>
+                <th>Nơi Làm Việc (Cụm Rạp)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nv in ds_nv %}
+            <tr>
+                <td>{{ nv.MaNV }}</td>
+                <td><strong>{{ nv.HoTen }}</strong></td>
+                <td>{{ nv.ChucVu }}</td>
+                <td><span style="background: rgba(139, 92, 246, 0.2); color:#8b5cf6; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold;">{{ nv.TenCumRap }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu nhân viên trong cơ sở dữ liệu.</p>
     {% endif %}
 </div>
 {% endblock %}

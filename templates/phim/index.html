@@ -4,7 +4,13 @@
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1>🎬 Quản Lý Phim & Danh Mục</h1>
-        <a href="/phim/them" class="btn">+ Thêm Phim Mới</a>
+        <div style="display: flex; gap: 1rem;">
+            {% if session.chuc_vu == 'Admin' %}
+                <a href="/phim/theloai" class="btn" style="background: rgba(255,255,255,0.1);">📂 Quản Lý Thể Loại</a>
+                <a href="/phim/gioi-han" class="btn" style="background: rgba(255,255,255,0.1);">🔞 Quản Lý Độ Tuổi</a>
+                <a href="/phim/them" class="btn">+ Thêm Phim Mới</a>
+            {% endif %}
+        </div>
     </div>
 
     {% if ds_phim %}
@@ -25,7 +31,7 @@
                 <td><strong>{{ p.TenPhim }}</strong></td>
                 <td>{{ p.ThoiLuong }}</td>
                 <td>{{ p.NgayKhoiChieu }}</td>
-                <td><span style="background: rgba(244,63,94,0.2); color:#f43f5e; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold;">T{{ p.DoTuoi }}</span></td>
+                <td><span style="background: rgba(244,63,94,0.2); color:#f43f5e; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold;">{{ p.GioiHanDoTuoi }}</span></td>
             </tr>
             {% endfor %}
         </tbody>

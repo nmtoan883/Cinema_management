@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="background: var(--bg-surface); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; position: relative;">
+    <!-- Banner mờ phía sau -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 350px; overflow: hidden; z-index: 0;">
+        <img src="{{ phim.Poster }}" style="width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.3); transform: scale(1.1);">
+    </div>
+    
+    <div style="position: relative; z-index: 1; display: flex; flex-wrap: wrap; padding: 3rem; gap: 3rem;">
+        <!-- Poster Bên Trái -->
+        <div style="flex: 0 0 300px;">
+            <img src="{{ phim.Poster }}" alt="{{ phim.TenPhim }}" style="width: 100%; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        </div>
+        
+        <!-- Chi tiết Bên Phải -->
+        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">{{ phim.TenPhim }}</h1>
+            
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <span style="background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem;">
+                    ⏱️ {{ phim.ThoiLuong }} phút
+                </span>
+                <span style="background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem;">
+                    📅 {{ phim.NgayKhoiChieu.strftime('%d/%m/%Y') if phim.NgayKhoiChieu else 'N/A' }}
+                </span>
+                <span style="background: rgba(0,0,0,0.5); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: bold;
+                    {% if '18' in phim.GioiHanDoTuoi %} color: #ef4444; border: 1px solid #ef4444;
+                    {% elif '16' in phim.GioiHanDoTuoi %} color: #f59e0b; border: 1px solid #f59e0b;
+                    {% else %} color: #10b981; border: 1px solid #10b981; {% endif %}">
+                    {{ phim.GioiHanDoTuoi }}
+                </span>
+            </div>
+            
+            <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                {{ phim.MoTa }}
+            </p>
+            
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 1rem 2rem; margin-bottom: 2rem; font-size: 1rem;">
+                <span style="color: var(--text-muted); font-weight: bold;">Đạo diễn:</span>
+                <span style="color: #fff;">{{ phim.TenDaoDien }}</span>
+                
+                <span style="color: var(--text-muted); font-weight: bold;">Thể loại:</span>
+                <span style="color: #fff;">{{ phim.CacTheLoai }}</span>
+            </div>
+            
+            <div style="margin-top: auto; padding-top: 2rem; display: flex; gap: 1rem;">
+                <a href="/datve?phim_id={{ phim.MaPhim }}" class="btn" style="background: #ef4444; padding: 1rem 3rem; font-size: 1.2rem;">🎟️ Mua Vé Ngay</a>
+                {% if phim.TrailerURL %}
+                <button onclick="openTrailerModal()" class="btn" style="background: rgba(255,255,255,0.2); padding: 1rem 2rem; font-size: 1.2rem; border: 1px solid rgba(255,255,255,0.5);">▶️ Xem Trailer</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="background: var(--bg-surface); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="color: var(--primary); margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem; font-size: 1.8rem;">📅 Lịch Chiếu Theo Rạp</h2>
+    
+    {% if lich_chieu %}
+        {% for rap, suat_chieus in lich_chieu.items() %}
+        <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
+            <h3 style="font-size: 1.3rem; color: #fff; margin-bottom: 1rem;">📍 {{ rap }}</h3>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% for sc in suat_chieus %}
+                <a href="/datve?phim_id={{ phim.MaPhim }}" style="display: inline-block; padding: 0.8rem 1.2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; text-decoration: none; transition: all 0.2s; color: var(--text-color); text-align: center; min-width: 100px;" onmouseover="this.style.borderColor='var(--primary)'; this.style.background='rgba(139, 92, 246, 0.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)'; this.style.background='rgba(255,255,255,0.05)'">
+                    <strong style="display: block; font-size: 1.2rem; color: var(--primary); margin-bottom: 0.3rem;">{{ sc.GioBatDau.strftime('%H:%M') }}</strong>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); display: block;">{{ sc.GioBatDau.strftime('%d/%m/%Y') }}</span>
+                    <span style="font-size: 0.8rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block;">{{ sc.TenLoaiPhong }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="padding: 3rem; text-align: center; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px dashed var(--border-color);">
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Xin lỗi, hiện tại chưa có lịch chiếu nào cho phim này.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Trailer Modal -->
+{% if phim.TrailerURL %}
+<div id="trailerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 80%; max-width: 900px; aspect-ratio: 16/9; background: #000; border-radius: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.8);">
+        <button onclick="closeTrailerModal()" style="position: absolute; top: -40px; right: 0; background: none; border: none; color: white; font-size: 2rem; cursor: pointer;">&times;</button>
+        <iframe id="trailerIframe" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 8px;"></iframe>
+    </div>
+</div>
+
+<script>
+    function openTrailerModal() {
+        var modal = document.getElementById('trailerModal');
+        var iframe = document.getElementById('trailerIframe');
+        // Thêm autoplay=1 vào link youtube để tự động chạy khi mở
+        var videoUrl = "{{ phim.TrailerURL }}";
+        if (videoUrl.includes('?')) {
+            videoUrl += "&autoplay=1";
+        } else {
+            videoUrl += "?autoplay=1";
+        }
+        iframe.src = videoUrl;
+        modal.style.display = 'flex';
+    }
+
+    function closeTrailerModal() {
+        var modal = document.getElementById('trailerModal');
+        var iframe = document.getElementById('trailerIframe');
+        iframe.src = ""; // Stop video
+        modal.style.display = 'none';
+    }
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,80 +1,62 @@
-# 🎬 HỆ THỐNG QUẢN LÝ RẠP CHIẾU PHIM (Cinema Management System)
+# Hệ Thống Quản Lý Rạp Chiếu Phim (Cinema Management System)
 
-Đây là mã nguồn của Đồ án môn học **Hệ Quản Trị Cơ Sở Dữ Liệu**. Dự án mô phỏng quá trình quản lý và vận hành một cụm rạp chiếu phim với các nghiệp vụ thực tế như: Quản lý phim, Phòng chiếu, Lịch chiếu, Khách hàng thành viên và Hệ thống Bán vé giao dịch.
+Dự án Hệ thống Quản Lý Rạp Chiếu Phim cung cấp nền tảng quản trị và đặt vé xem phim với hệ thống phân quyền (RBAC) nghiêm ngặt.
 
-Dự án được xây dựng bằng **Python (Flask)** kết hợp với **MySQL** làm hệ quản trị cơ sở dữ liệu.
+## 🔐 1. Thông tin Tài khoản Đăng nhập (Mặc định)
 
----
+Hệ thống được chia làm 3 phân hệ chính. Mật khẩu mặc định cho tất cả các tài khoản demo dưới đây là: `123456`.
 
-## 🛠️ Công Nghệ Sử Dụng
+| Vai trò | Tên Đăng Nhập (Username / SĐT) | Quyền hạn mô tả |
+| :--- | :--- | :--- |
+| **Quản Trị Viên (Admin)** | `admin` | Toàn quyền kiểm soát hệ thống. Quản lý Phim, Rạp, Lịch chiếu, Khách hàng, tạo tài khoản Quản Lý / Nhân viên. |
+| **Quản Lý Rạp** | *(Dùng Admin tạo)* | Có quyền quản lý Phòng Chiếu, Lịch Chiếu, Nhân Viên thuộc **Cụm rạp của mình**. Chỉ được xem (không sửa) danh sách Phim. |
+| **Nhân Viên Bán Vé** | `nhanvien1` | Chỉ được phép thao tác Bán Vé tại quầy và quản lý Khách Hàng. Bị ẩn các chức năng quản trị nhạy cảm. |
+| **Khách Hàng** | `0901234567` | Tài khoản dành cho khách đặt vé trực tuyến. (Đăng nhập bằng Số điện thoại) |
 
-- **Backend:** Python 3, Flask (sử dụng cấu trúc Blueprint)
-- **Cơ Sở Dữ Liệu:** MySQL (Sử dụng SQL Native, Stored Procedures, Triggers, Views, Transactions)
-- **Frontend:** HTML5, Vanilla CSS (Thiết kế Dark Mode / Glassmorphism)
-- **Kiểm soát phiên bản:** Git & GitHub
-
----
-
-## 👥 Phân (Modules)
-
-Dự án được chia thành 5 module độc lập:
-
-1. **Phân hệ Phim (`modules/phim.py`):** Quản lý Danh mục phim, Đạo diễn, Diễn viên, Thể loại.
-2. **Phân hệ Rạp (`modules/rap.py`):** Quản lý Cụm rạp, Phòng chiếu, tự động sinh Sơ đồ ghế ngồi.
-3. **Phân hệ Suất Chiếu (`modules/suat_chieu.py`):** Quản lý Lịch chiếu phim. Điểm nhấn: *Sử dụng Trigger chống trùng lặp giờ chiếu*.
-4. **Phân hệ Khách Hàng (`modules/khach_hang.py`):** Quản lý Hồ sơ khách hàng, dịch vụ Bắp Nước (F&B). Điểm nhấn: *Sử dụng Trigger tự động thăng hạng thẻ VIP khi đạt đủ điểm*.
-5. **Phân hệ Đặt Vé (`modules/dat_ve.py`):** Xử lý giao dịch bán vé và thống kê doanh thu. Điểm nhấn: *Sử dụng Transaction (Giao tác) chống thất thoát khi thanh toán*.
+*Lưu ý: Bạn có thể đăng nhập bằng tài khoản `admin` và truy cập menu **Nhân Viên** để tự do tạo thêm các tài khoản Quản Lý hoặc Nhân Viên Bán Vé khác.*
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Chạy Dự Án
+## 🗄️ 2. Quy ước Database (Dành cho Team Phát triển)
 
-### Bước 1: Chuẩn bị Cơ sở dữ liệu (MySQL)
-1. Mở phần mềm quản lý MySQL (ví dụ: **MySQL Workbench**, **XAMPP phpMyAdmin**, hoặc **Navicat**).
-2. Mở file `cinema_management.sql` nằm ở thư mục gốc của dự án.
-3. Chạy toàn bộ file SQL này (Execute All) để hệ thống tự động tạo Database `CinemaDB`, tạo các Bảng, nạp Dữ liệu mẫu, và khởi tạo các Triggers/Procedures.
+Để đảm bảo các thành viên trong nhóm không bị "lệch" và code đồng nhất, vui lòng tuân thủ các quy ước CSDL sau:
 
-### Bước 2: Cấu hình kết nối
-Mở file `config.py` và sửa đổi thông tin kết nối cho khớp với MySQL trên máy tính của bạn:
-```python
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',         # Thay bằng user MySQL của bạn
-    'password': '',         # Nhập mật khẩu MySQL (Nếu dùng XAMPP thì để trống)
-    'database': 'CinemaDB'
-}
-```
+### Tên Bảng & Cột (Naming Convention)
+- **Tên Bảng (Table):** Viết hoa chữ cái đầu mỗi từ (PascalCase) hoặc in hoa toàn bộ, ưu tiên PascalCase trong code Python. (Ví dụ: `Phim`, `CumRap`, `NhanVien`).
+- **Khóa Chính (Primary Key):** Đặt tên bắt đầu bằng chữ `Ma` kèm theo tên Bảng. Cấu hình tự động tăng `AUTO_INCREMENT`. (Ví dụ: `MaPhim`, `MaCumRap`, `MaNV`).
+- **Khóa Ngoại (Foreign Key):** Sử dụng chung tên với Khóa chính của bảng được tham chiếu.
+- **Tiền tố Tham số / Thuộc tính:**
+  - Tiền tố `So` cho các biến số lượng (Ví dụ: `SoHang`, `SoCot`).
+  - Tiền tố `Ten` cho các tên gọi (Ví dụ: `TenPhim`, `TenGhe`).
 
-### Bước 3: Cài đặt thư viện Python
-Mở Terminal/Command Prompt tại thư mục dự án và chạy:
-```bash
-pip install -r requirements.txt
-```
+### Cấu trúc Xử lý Logic (Stored Procedures & Functions)
+- **Hàm (Functions):** Bắt đầu bằng `fn_`. (Ví dụ: `fn_TinhGiaVeCuoiCung`).
+- **Thủ tục (Procedures):** Bắt đầu bằng `sp_`. Thường dùng để xử lý các logic phức tạp như INSERT/UPDATE nhiều bảng cùng lúc. (Ví dụ: `sp_TaoPhongVaGhe`).
+- **Trigger:** Bắt đầu bằng `trg_`. Dùng để ràng buộc dữ liệu tự động (VD: Không cho phép xếp lịch chiếu trùng giờ).
+- **View:** Bắt đầu bằng `v_`. (Ví dụ: `v_LichChieuHomNay`).
 
-### Bước 4: Khởi động Server Web
-Chạy ứng dụng bằng lệnh:
-```bash
-python app.py
-```
-*Server sẽ khởi chạy tại địa chỉ:* `http://localhost:5000`
+### Định dạng & Quy ước các trường thông tin (Data Types & Constraints)
+Để tránh bị khai báo sai kiểu dữ liệu dẫn đến lỗi hệ thống, toàn bộ thành viên cần tuân thủ các quy định sau khi tạo cột mới:
+- **Số Điện Thoại (SDT/Hotline):** Bắt buộc dùng `VARCHAR(15)`. **TUYỆT ĐỐI KHÔNG** dùng kiểu `INT` vì sẽ làm mất số `0` ở đầu số điện thoại.
+- **Trạng thái (Status/Boolean):** Dùng kiểu `TINYINT(1)` với quy ước `0` = Sai/Ngừng hoạt động, `1` = Đúng/Đang hoạt động. Không dùng chữ 'True/False'.
+- **Ngày giờ (Date/Time):** Sử dụng `DATETIME` cho các mốc thời gian cụ thể (Ví dụ: `GioBatDau`, `GioKetThuc`). Nếu chỉ lưu ngày (Sinh nhật), dùng kiểu `DATE`.
+- **Tiền tệ (Giá vé, Doanh thu):** Sử dụng `INT` (hoặc DECIMAL) thay vì FLOAT để tránh sai số thập phân trong giao dịch tài chính tại Việt Nam. Không lưu đuôi `.00`.
+- **Mật khẩu (Password):** Mặc định lưu `VARCHAR(255)` để dự trù cho việc băm mật khẩu (Hash - bcrypt/SHA256) sau này. Không giới hạn quá ngắn.
+- **Giới hạn độ tuổi (Phim):** Dùng thống nhất các mã phân loại của Cục Điện Ảnh: `P` (Phổ biến), `K` (Khán giả dưới 13 tuổi xem cùng cha mẹ), `T13` (13+), `T16` (16+), `T18` (18+).
 
----
-
-## 📸 Cấu Trúc Thư Mục
-
-```text
-Cinema_management/
-│
-├── app.py                  # File chạy chính của ứng dụng
-├── config.py               # Cấu hình kết nối MySQL
-├── database.py             # Các hàm tiện ích thực thi SQL
-├── cinema_management.sql   # File CSDL tổng (Database Backup)
-├── requirements.txt        # Danh sách thư viện cần thiết
-│
-├── modules/                # Thư mục Backend 
-├── static/                 # Thư mục chứa CSS / Hình ảnh
-└── templates/              # Thư mục chứa giao diện HTML
-```
+### Luồng Dữ liệu Đặc biệt (Lưu ý quan trọng)
+1. **Phân quyền Nhân Viên:** Dựa hoàn toàn vào field `ChucVu` trong bảng `NhanVien`. Hiện tại hỗ trợ 3 chuỗi: `'Admin'`, `'Quản Lý'`, `'Nhân Viên Bán Vé'`. Nếu sai chính tả chữ này, hệ thống sẽ tự động hạ quyền xuống mức thấp nhất.
+2. **Sơ đồ ghế (Seat Map):** Thay vì tạo lưới ghế ảo, hệ thống sinh ra các Record vật lý vào bảng `Ghe` (Tên ghế: A1, A2...; Dựa vào tọa độ lưới `SoHang`, `SoCot`). Nếu một phòng chiếu có góc khuyết (thiếu ghế), Admin chỉ cần **xóa** ghế đó trong CSDL, giao diện sẽ tự động hiển thị chỗ trống.
 
 ---
-*Dự án được thực hiện phục vụ cho mục đích học tập.*
+
+## 🚀 3. Hướng dẫn Chạy Dự Án
+
+1. Yêu cầu cài đặt: Python 3.9+ & MySQL (hoặc XAMPP).
+2. Tải cơ sở dữ liệu từ file `cinema_management.sql`.
+3. Cài đặt thư viện: `pip install flask mysql-connector-python`
+4. Khởi chạy ứng dụng:
+   ```bash
+   python app.py
+   ```
+5. Mở trình duyệt và truy cập: `http://localhost:5000`

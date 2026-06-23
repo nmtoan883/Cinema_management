@@ -11,11 +11,30 @@
     <nav class="navbar">
         <a href="/" class="navbar-brand">🎬 Cinema DB</a>
         <div class="nav-links">
-            <a href="/phim" class="{{ 'active' if 'phim' in request.path }}">1. Phim</a>
-            <a href="/rap" class="{{ 'active' if 'rap' in request.path }}">2. Rạp</a>
-            <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">3. Lịch Chiếu</a>
-            <a href="/khachhang" class="{{ 'active' if 'khachhang' in request.path }}">4. Khách Hàng</a>
-            <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">5. Đặt Vé</a>
+            {% if current_user_role == 'nhanvien' %}
+                {% if session.chuc_vu in ['Admin', 'Quản Lý'] %}
+                    <a href="/phim" class="{{ 'active' if 'phim' in request.path }}">1. Phim</a>
+                    <a href="/rap" class="{{ 'active' if 'rap' in request.path }}">2. Rạp</a>
+                    <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">3. Lịch Chiếu</a>
+                {% endif %}
+                <a href="/khachhang" class="{{ 'active' if 'khachhang' in request.path }}">4. Khách Hàng</a>
+                <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">5. Bán Vé</a>
+                {% if session.chuc_vu in ['Admin', 'Quản Lý'] %}
+                    <a href="/nhanvien" class="{{ 'active' if 'nhanvien' in request.path }}">6. Nhân Viên</a>
+                {% endif %}
+            {% elif current_user_role == 'khach' %}
+                <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">🎟️ Đặt Vé Phim</a>
+            {% else %}
+                <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">Lịch Chiếu</a>
+                <a href="/auth/login" class="btn" style="padding: 0.4rem 1rem; margin-left: 1rem;">Đăng Nhập</a>
+            {% endif %}
+            
+            {% if current_user_name %}
+            <div style="margin-left: 2rem; padding-left: 1rem; border-left: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                <span style="color: var(--primary); font-weight: 500;">👤 {{ current_user_name }}</span>
+                <a href="/auth/logout" style="color: var(--danger); font-size: 0.9rem; text-decoration: none;">Đăng Xuất</a>
+            </div>
+            {% endif %}
         </div>
     </nav>
 
@@ -31,13 +50,6 @@
         {% endwith %}
 
         {% block content %}
-        <div class="card">
-            <h1>Chào mừng đến với Hệ Thống Rạp Chiếu Phim</h1>
-            <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
-                Hệ thống Quản lý CSDL dành cho đồ án môn học.<br>
-                Được phát triển với <strong>Flask</strong> và <strong>MySQL</strong>. Hãy chọn các phân hệ trên menu để bắt đầu làm việc.
-            </p>
-        </div>
         {% endblock %}
     </div>
 </body>

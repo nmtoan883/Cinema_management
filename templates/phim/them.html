@@ -4,7 +4,7 @@
 <div class="card">
     <h1>🎬 Thêm Phim Mới</h1>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
             <label>Tên Phim</label>
             <input type="text" name="ten_phim" required>
@@ -21,8 +21,29 @@
         </div>
 
         <div class="form-group">
-            <label>Độ Tuổi</label>
-            <input type="number" name="do_tuoi" required>
+            <label>Giới Hạn Độ Tuổi</label>
+            <select name="ma_gioi_han" required>
+                {% for gh in ds_gioi_han %}
+                <option value="{{ gh.MaGioiHan }}">
+                    {{ gh.KyHieu }} - {{ gh.MoTa }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Link Trailer (Youtube Embed URL)</label>
+            <input type="url" name="trailer" placeholder="https://www.youtube.com/embed/..." required>
+        </div>
+
+        <div class="form-group">
+            <label>Tải Lên Ảnh Poster</label>
+            <input type="file" name="poster_file" accept="image/*" required>
+        </div>
+
+        <div class="form-group">
+            <label>Mô Tả Nội Dung Phim</label>
+            <textarea name="mo_ta" rows="4" required style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);"></textarea>
         </div>
 
         <div class="form-group">

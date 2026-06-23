@@ -1,10 +1,18 @@
 from decimal import Decimal, InvalidOperation
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, session
 
 import database
 
 rap_bp = Blueprint('rap', __name__)
+
+@rap_bp.before_request
+def check_auth():
+    if not session.get('user_id') or session.get('role') != 'nhanvien':
+        return redirect(url_for('auth.login'))
+    if session.get('chuc_vu') not in ['Admin', 'Quản Lý']:
+        flash('Bạn không có quyền truy cập quản lý rạp', 'error')
+        return redirect('/')
 
 
 def _cum_rap_da_ton_tai(ten_cum_rap, dia_chi, ma_cum_rap=None):
@@ -127,54 +135,52 @@ def _loai_phong_hop_le(ma_loai_phong):
     return bool(database.fetch_all("SELECT MaLoaiPhong FROM LoaiPhong WHERE MaLoaiPhong = %s", (ma_loai_phong,)))
 
 
-def _du_lieu_phong_chieu_hop_le(ten_phong, ma_cum_rap, ma_loai_phong, suc_chua, ma_phong=None):
-    if not ten_phong or not ma_cum_rap or not ma_loai_phong or not suc_chua:
-        return None, None, None, 'Vui long nhap day du ten phong, cum rap, loai phong va suc chua.'
+def _du_lieu_phong_chieu_hop_le(ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_phong=None):
+    if not ten_phong or not ma_cum_rap or not ma_loai_phong or not so_hang or not so_cot:
+        return None, None, None, None, 'Vui long nhap day du ten phong, cum rap, loai phong, so hang va so cot.'
 
     try:
         ma_cum_rap_value = int(ma_cum_rap)
         ma_loai_phong_value = int(ma_loai_phong)
-        suc_chua_value = int(suc_chua)
+        so_hang_value = int(so_hang)
+        so_cot_value = int(so_cot)
     except ValueError:
-        return None, None, None, 'Cum rap, loai phong va suc chua phai la gia tri hop le.'
+        return None, None, None, None, 'Cum rap, loai phong, so hang va so cot phai la gia tri hop le.'
 
-    if suc_chua_value <= 0:
-        return None, None, None, 'Suc chua phai lon hon 0.'
+    if so_hang_value <= 0 or so_cot_value <= 0:
+        return None, None, None, None, 'So hang va so cot phai lon hon 0.'
 
     if not _cum_rap_hop_le(ma_cum_rap_value):
-        return None, None, None, 'Cum rap khong ton tai.'
+        return None, None, None, None, 'Cum rap khong ton tai.'
 
     if not _loai_phong_hop_le(ma_loai_phong_value):
-        return None, None, None, 'Loai phong khong ton tai.'
+        return None, None, None, None, 'Loai phong khong ton tai.'
 
     if _phong_chieu_da_ton_tai(ten_phong, ma_cum_rap_value, ma_phong):
-        return None, None, None, 'Ten phong da ton tai trong cum rap nay.'
+        return None, None, None, None, 'Ten phong da ton tai trong cum rap nay.'
 
-    return ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, None
+    return ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, None
 
 
-def _du_lieu_tao_phong_va_ghe_hop_le(ten_phong, ma_cum_rap, ma_loai_phong, suc_chua, ma_loai_ghe_mac_dinh):
-    ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, loi = _du_lieu_phong_chieu_hop_le(
-        ten_phong, ma_cum_rap, ma_loai_phong, suc_chua
+def _du_lieu_tao_phong_va_ghe_hop_le(ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_loai_ghe_mac_dinh):
+    ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
+        ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot
     )
     if loi:
-        return None, None, None, None, loi
+        return None, None, None, None, None, loi
 
     if not ma_loai_ghe_mac_dinh:
-        return None, None, None, None, 'Vui long chon loai ghe mac dinh.'
+        return None, None, None, None, None, 'Vui long chon loai ghe mac dinh.'
 
     try:
         ma_loai_ghe_value = int(ma_loai_ghe_mac_dinh)
     except ValueError:
-        return None, None, None, None, 'Loai ghe mac dinh phai la gia tri hop le.'
+        return None, None, None, None, None, 'Loai ghe mac dinh phai la gia tri hop le.'
 
     if not _loai_ghe_hop_le(ma_loai_ghe_value):
-        return None, None, None, None, 'Loai ghe mac dinh khong ton tai.'
+        return None, None, None, None, None, 'Loai ghe mac dinh khong ton tai.'
 
-    if suc_chua_value < 100:
-        return None, None, None, None, 'Suc chua phai lon hon hoac bang 100 de sinh ghe tu A1 den J10.'
-
-    return ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, ma_loai_ghe_value, None
+    return ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, ma_loai_ghe_value, None
 
 
 def _phong_hop_le(ma_phong):
@@ -281,22 +287,47 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
         ORDER BY MaLoaiGhe ASC
         """
     )
-    ds_phong_chieu = database.fetch_all(
-        """
-        SELECT
-            pc.MaPhong,
-            pc.TenPhong,
-            pc.MaCumRap,
-            pc.MaLoaiPhong,
-            pc.SucChua,
-            cr.TenCumRap,
-            lp.TenLoaiPhong
-        FROM PhongChieu pc
-        JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
-        JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
-        ORDER BY pc.MaPhong ASC
-        """
-    )
+    
+    if session.get('chuc_vu') == 'Admin':
+        ds_phong_chieu = database.fetch_all(
+            """
+            SELECT
+                pc.MaPhong,
+                pc.TenPhong,
+                pc.MaCumRap,
+                pc.MaLoaiPhong,
+                pc.SoHang,
+                pc.SoCot,
+                pc.SucChua,
+                cr.TenCumRap,
+                lp.TenLoaiPhong
+            FROM PhongChieu pc
+            JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
+            JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
+            ORDER BY pc.MaPhong ASC
+            """
+        )
+    else:
+        ds_phong_chieu = database.fetch_all(
+            """
+            SELECT
+                pc.MaPhong,
+                pc.TenPhong,
+                pc.MaCumRap,
+                pc.MaLoaiPhong,
+                pc.SoHang,
+                pc.SoCot,
+                pc.SucChua,
+                cr.TenCumRap,
+                lp.TenLoaiPhong
+            FROM PhongChieu pc
+            JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
+            JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
+            WHERE pc.MaCumRap = %s
+            ORDER BY pc.MaPhong ASC
+            """, (session.get('ma_cum_rap'),)
+        )
+
     ds_ghe = database.fetch_all(
         """
         SELECT
@@ -357,6 +388,10 @@ def index():
 
 @rap_bp.route('/them', methods=['POST'])
 def them_cum_rap():
+    if session.get('chuc_vu') != 'Admin':
+        flash('Chỉ Admin mới có quyền thêm Cụm rạp', 'error')
+        return redirect(url_for('rap.index', section='cumrap'))
+        
     ten_cum_rap = request.form.get('TenCumRap', '').strip()
     dia_chi = request.form.get('DiaChi', '').strip()
     hotline = request.form.get('Hotline', '').strip()
@@ -384,6 +419,10 @@ def them_cum_rap():
 
 @rap_bp.route('/sua/<int:ma_cum_rap>', methods=['GET', 'POST'])
 def sua_cum_rap(ma_cum_rap):
+    if session.get('chuc_vu') != 'Admin':
+        flash('Chỉ Admin mới có quyền sửa Cụm rạp', 'error')
+        return redirect(url_for('rap.index', section='cumrap'))
+
     if request.method == 'POST':
         ten_cum_rap = request.form.get('TenCumRap', '').strip()
         dia_chi = request.form.get('DiaChi', '').strip()
@@ -434,6 +473,10 @@ def sua_cum_rap(ma_cum_rap):
 
 @rap_bp.route('/xoa/<int:ma_cum_rap>', methods=['POST'])
 def xoa_cum_rap(ma_cum_rap):
+    if session.get('chuc_vu') != 'Admin':
+        flash('Chỉ Admin mới có quyền xóa Cụm rạp', 'error')
+        return redirect(url_for('rap.index', section='cumrap'))
+
     success = database.execute_query(
         "DELETE FROM CumRap WHERE MaCumRap = %s",
         (ma_cum_rap,),
@@ -630,12 +673,18 @@ def xoa_loai_ghe(ma_loai_ghe):
 @rap_bp.route('/phongchieu/them', methods=['POST'])
 def them_phong_chieu():
     ten_phong = request.form.get('TenPhong', '').strip()
-    ma_cum_rap = request.form.get('MaCumRap', '').strip()
-    ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
-    suc_chua = request.form.get('SucChua', '').strip()
+    
+    if session.get('chuc_vu') == 'Admin':
+        ma_cum_rap = request.form.get('MaCumRap', '').strip()
+    else:
+        ma_cum_rap = session.get('ma_cum_rap')
 
-    ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, loi = _du_lieu_phong_chieu_hop_le(
-        ten_phong, ma_cum_rap, ma_loai_phong, suc_chua
+    ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
+    so_hang = request.form.get('SoHang', '').strip()
+    so_cot = request.form.get('SoCot', '').strip()
+
+    ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
+        ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot
     )
     if loi:
         flash(loi, 'error')
@@ -643,10 +692,10 @@ def them_phong_chieu():
 
     success = database.execute_query(
         """
-        INSERT INTO PhongChieu (TenPhong, MaCumRap, MaLoaiPhong, SucChua)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO PhongChieu (TenPhong, MaCumRap, MaLoaiPhong, SoHang, SoCot, SucChua)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """,
-        (ten_phong, ma_cum_rap_value, ma_loai_phong_value, suc_chua_value),
+        (ten_phong, ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, so_hang_value * so_cot_value),
     )
 
     if success:
@@ -660,21 +709,27 @@ def them_phong_chieu():
 @rap_bp.route('/phongchieu/tao-va-sinh-ghe', methods=['POST'])
 def tao_phong_va_sinh_ghe():
     ten_phong = request.form.get('TenPhong', '').strip()
-    ma_cum_rap = request.form.get('MaCumRap', '').strip()
+    
+    if session.get('chuc_vu') == 'Admin':
+        ma_cum_rap = request.form.get('MaCumRap', '').strip()
+    else:
+        ma_cum_rap = session.get('ma_cum_rap')
+
     ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
-    suc_chua = request.form.get('SucChua', '').strip()
+    so_hang = request.form.get('SoHang', '').strip()
+    so_cot = request.form.get('SoCot', '').strip()
     ma_loai_ghe_mac_dinh = request.form.get('MaLoaiGheMacDinh', '').strip()
 
-    ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, ma_loai_ghe_value, loi = _du_lieu_tao_phong_va_ghe_hop_le(
-        ten_phong, ma_cum_rap, ma_loai_phong, suc_chua, ma_loai_ghe_mac_dinh
+    ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, ma_loai_ghe_value, loi = _du_lieu_tao_phong_va_ghe_hop_le(
+        ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_loai_ghe_mac_dinh
     )
     if loi:
         flash(loi, 'error')
         return redirect(url_for('rap.index', section='phongchieu'))
 
     success = database.execute_query(
-        "CALL sp_TaoPhongVaGhe(%s, %s, %s, %s, %s)",
-        (ten_phong, ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, ma_loai_ghe_value),
+        "CALL sp_TaoPhongVaGhe(%s, %s, %s, %s, %s, %s)",
+        (ten_phong, ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, ma_loai_ghe_value),
     )
 
     if success:
@@ -687,14 +742,27 @@ def tao_phong_va_sinh_ghe():
 
 @rap_bp.route('/phongchieu/sua/<int:ma_phong>', methods=['GET', 'POST'])
 def sua_phong_chieu(ma_phong):
+    # Check ownership if Quản Lý
+    if session.get('chuc_vu') != 'Admin':
+        pc = database.fetch_all("SELECT MaCumRap FROM PhongChieu WHERE MaPhong = %s", (ma_phong,))
+        if not pc or pc[0]['MaCumRap'] != session.get('ma_cum_rap'):
+            flash('Bạn không có quyền sửa phòng chiếu của rạp khác', 'error')
+            return redirect(url_for('rap.index', section='phongchieu'))
+
     if request.method == 'POST':
         ten_phong = request.form.get('TenPhong', '').strip()
-        ma_cum_rap = request.form.get('MaCumRap', '').strip()
-        ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
-        suc_chua = request.form.get('SucChua', '').strip()
+        
+        if session.get('chuc_vu') == 'Admin':
+            ma_cum_rap = request.form.get('MaCumRap', '').strip()
+        else:
+            ma_cum_rap = session.get('ma_cum_rap')
 
-        ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, loi = _du_lieu_phong_chieu_hop_le(
-            ten_phong, ma_cum_rap, ma_loai_phong, suc_chua, ma_phong
+        ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
+        so_hang = request.form.get('SoHang', '').strip()
+        so_cot = request.form.get('SoCot', '').strip()
+
+        ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
+            ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_phong
         )
         if loi:
             flash(loi, 'error')
@@ -703,10 +771,10 @@ def sua_phong_chieu(ma_phong):
         success = database.execute_query(
             """
             UPDATE PhongChieu
-            SET TenPhong = %s, MaCumRap = %s, MaLoaiPhong = %s, SucChua = %s
+            SET TenPhong = %s, MaCumRap = %s, MaLoaiPhong = %s, SoHang = %s, SoCot = %s, SucChua = %s
             WHERE MaPhong = %s
             """,
-            (ten_phong, ma_cum_rap_value, ma_loai_phong_value, suc_chua_value, ma_phong),
+            (ten_phong, ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, so_hang_value * so_cot_value, ma_phong),
         )
 
         if success:
@@ -717,7 +785,7 @@ def sua_phong_chieu(ma_phong):
 
     phong_chieu = database.fetch_all(
         """
-        SELECT MaPhong, TenPhong, MaCumRap, MaLoaiPhong, SucChua
+        SELECT MaPhong, TenPhong, MaCumRap, MaLoaiPhong, SoHang, SoCot, SucChua
         FROM PhongChieu
         WHERE MaPhong = %s
         """,
@@ -740,6 +808,12 @@ def sua_phong_chieu(ma_phong):
 
 @rap_bp.route('/phongchieu/xoa/<int:ma_phong>', methods=['POST'])
 def xoa_phong_chieu(ma_phong):
+    if session.get('chuc_vu') != 'Admin':
+        pc = database.fetch_all("SELECT MaCumRap FROM PhongChieu WHERE MaPhong = %s", (ma_phong,))
+        if not pc or pc[0]['MaCumRap'] != session.get('ma_cum_rap'):
+            flash('Bạn không có quyền xóa phòng chiếu của rạp khác', 'error')
+            return redirect(url_for('rap.index', section='phongchieu'))
+
     success = database.execute_query(
         "DELETE FROM PhongChieu WHERE MaPhong = %s",
         (ma_phong,),

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div style="position: relative; width: 100%; height: 400px; border-radius: 12px; overflow: hidden; margin-bottom: 2rem;">
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(15,23,42,1) 0%, rgba(15,23,42,0.4) 100%); z-index: 1;"></div>
+    <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1200&auto=format&fit=crop" alt="Cinema Banner" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0;">
+    
+    <div style="position: relative; z-index: 2; padding: 4rem; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Trải nghiệm điện ảnh đỉnh cao</h1>
+        <p style="font-size: 1.2rem; color: #cbd5e1; max-width: 500px; margin-bottom: 2rem;">Hệ thống rạp chiếu phim hiện đại nhất với công nghệ IMAX 3D và âm thanh vòm sống động.</p>
+        <div>
+            <a href="/datve" class="btn" style="background: #ef4444; padding: 0.8rem 2rem; font-size: 1.2rem; display: inline-block;">🎟️ Đặt Vé Ngay</a>
+        </div>
+    </div>
+</div>
+
+<!-- Movie Grid -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="font-size: 1.8rem; border-left: 4px solid var(--primary); padding-left: 1rem;">Phim Đang Chiếu</h2>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem;">
+    {% for phim in ds_phim %}
+    <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <a href="/chi-tiet-phim/{{ phim.MaPhim }}" style="text-decoration: none; color: inherit; display: contents;">
+            <div style="position: relative; height: 350px;">
+                <img src="{{ phim.Poster }}" alt="{{ phim.TenPhim }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; font-size: 0.9rem;
+                    {% if '18' in phim.GioiHanDoTuoi %} color: #ef4444; border: 1px solid #ef4444;
+                    {% elif '16' in phim.GioiHanDoTuoi %} color: #f59e0b; border: 1px solid #f59e0b;
+                    {% else %} color: #10b981; border: 1px solid #10b981; {% endif %}">
+                    {{ phim.GioiHanDoTuoi }}
+                </div>
+            </div>
+            
+            <div style="padding: 1.5rem 1.5rem 0.5rem 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; flex-grow: 1;">{{ phim.TenPhim }}</h3>
+                
+                <div style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                    <span>⏱️ {{ phim.ThoiLuong }} phút</span>
+                    <span>📅 {{ phim.NgayKhoiChieu.strftime('%d/%m/%Y') if phim.NgayKhoiChieu else 'N/A' }}</span>
+                </div>
+                
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    🎭 {{ phim.CacTheLoai }}
+                </p>
+            </div>
+        </a>
+        <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <a href="/datve?phim_id={{ phim.MaPhim }}" class="btn" style="width: 100%; text-align: center; display: block; margin-top: auto;">Mua Vé</a>
+        </div>
+    </div>
+    {% else %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: var(--bg-surface); border-radius: 12px;">
+        <p style="color: var(--text-muted); font-size: 1.2rem;">Hiện chưa có phim nào đang chiếu.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

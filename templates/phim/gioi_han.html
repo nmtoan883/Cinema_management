@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>🔞 Quản Lý Giới Hạn Độ Tuổi</h1>
+    <a href="/phim/gioi-han/them" class="btn" style="background: var(--primary);">+ Thêm Mốc Tuổi</a>
+</div>
+
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ký Hiệu</th>
+                <th>Mô Tả Chi Tiết</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for gh in ds_gioi_han %}
+            <tr>
+                <td>#{{ gh.MaGioiHan }}</td>
+                <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold;">{{ gh.KyHieu }}</span></td>
+                <td style="color: var(--text-muted);">{{ gh.MoTa }}</td>
+            </tr>
+            {% endfor %}
+            {% if not ds_gioi_han %}
+            <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    Chưa có mốc độ tuổi nào.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

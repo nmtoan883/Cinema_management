@@ -13,7 +13,15 @@ def index():
     query_dv = "SELECT MaDichVu, TenDichVu, GiaBan FROM DichVu"
     ds_dv = database.fetch_all(query_dv)
     
-    return render_template('khach_hang/index.html', title="Khách Hàng & Dịch Vụ", ds_vip=ds_vip, ds_dv=ds_dv)
+    # Lấy danh sách Nhân viên
+    query_nv = """
+        SELECT NV.MaNV, NV.HoTen, NV.ChucVu, CR.TenCumRap
+        FROM NhanVien NV
+        JOIN CumRap CR ON NV.MaCumRap = CR.MaCumRap
+    """
+    ds_nv = database.fetch_all(query_nv)
+    
+    return render_template('khach_hang/index.html', title="Khách Hàng & Dịch Vụ", ds_vip=ds_vip, ds_dv=ds_dv, ds_nv=ds_nv)
 
 @khach_hang_bp.route('/tim-kiem', methods=['GET'])
 def tim_khach_hang():
@@ -65,3 +73,24 @@ def sua_dich_vu(id):
     if dich_vu:
         return render_template('khach_hang/sua_dichvu.html', title="Sửa Dịch Vụ", dich_vu=dich_vu[0])
     return redirect('/khachhang')
+
+@khach_hang_bp.route('/dichvu/xoa/<int:id>', methods=['GET'])
+def xoa_dich_vu(id):
+    query = "DELETE FROM DichVu WHERE MaDichVu = %s"
+    database.execute_query(query, (id,))
+    return redirect('/khachhang')
+
+@khach_hang_bp.route('/nhanvien/them', methods=['GET', 'POST'])
+def them_nhan_vien():
+    if request.method == 'POST':
+        ho_ten = request.form.get('ho_ten')
+        chuc_vu = request.form.get('chuc_vu')
+        ma_cum_rap = request.form.get('ma_cum_rap')
+        
+        query = "INSERT INTO NhanVien (HoTen, ChucVu, MaCumRap) VALUES (%s, %s, %s)"
+        database.execute_query(query, (ho_ten, chuc_vu, ma_cum_rap))
+        return redirect('/khachhang')
+        
+    # Lấy danh sách cụm rạp để chọn
+    ds_rap = database.fetch_all("SELECT MaCumRap, TenCumRap FROM CumRap")
+    return render_template('khach_hang/them_nhanvien.html', title="Thêm Nhân Viên", ds_rap=ds_rap)

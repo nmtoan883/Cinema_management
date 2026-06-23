@@ -1,9 +1,16 @@
+DROP DATABASE IF EXISTS CinemaDB;
 CREATE DATABASE IF NOT EXISTS CinemaDB;
 USE CinemaDB;
 
 CREATE TABLE THELOAI (
     MaTheLoai INT AUTO_INCREMENT PRIMARY KEY,
     TenTheLoai VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE GIOIHAN_DOTUOI (
+    MaGioiHan INT AUTO_INCREMENT PRIMARY KEY,
+    KyHieu VARCHAR(10) NOT NULL UNIQUE,
+    MoTa VARCHAR(100)
 );
 
 CREATE TABLE DAODIEN (
@@ -23,9 +30,13 @@ CREATE TABLE PHIM (
     TenPhim VARCHAR(255) NOT NULL,
     ThoiLuong INT NOT NULL, 
     NgayKhoiChieu DATE,
-    GioiHanDoTuoi VARCHAR(10), -- Cột này sẽ được tạo mới thành công
+    MaGioiHan INT,
+    Poster VARCHAR(500) DEFAULT 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png',
+    MoTa TEXT,
+    TrailerURL VARCHAR(500),
     MaDaoDien INT,
-    FOREIGN KEY (MaDaoDien) REFERENCES DAODIEN(MaDaoDien) ON DELETE SET NULL
+    FOREIGN KEY (MaDaoDien) REFERENCES DAODIEN(MaDaoDien) ON DELETE SET NULL,
+    FOREIGN KEY (MaGioiHan) REFERENCES GIOIHAN_DOTUOI(MaGioiHan) ON DELETE SET NULL
 );
 
 CREATE TABLE PHIM_THELOAI (
@@ -51,10 +62,14 @@ SELECT
     p.TenPhim,
     p.ThoiLuong,
     p.NgayKhoiChieu,
-    p.GioiHanDoTuoi,
+    IFNULL(gh.KyHieu, 'Chưa phân loại') AS GioiHanDoTuoi,
+    p.Poster,
+    p.MoTa,
+    p.TrailerURL,
     IFNULL(dd.HoTen, 'Chưa cập nhật') AS TenDaoDien,
     IFNULL(GROUP_CONCAT(tl.TenTheLoai SEPARATOR ', '), 'Chưa phân loại') AS CacTheLoai
 FROM PHIM p
+LEFT JOIN GIOIHAN_DOTUOI gh ON p.MaGioiHan = gh.MaGioiHan
 LEFT JOIN DAODIEN dd ON p.MaDaoDien = dd.MaDaoDien
 LEFT JOIN PHIM_THELOAI ptl ON p.MaPhim = ptl.MaPhim
 LEFT JOIN THELOAI tl ON ptl.MaTheLoai = tl.MaTheLoai
@@ -66,7 +81,10 @@ CREATE PROCEDURE sp_ThemPhimMoi(
     IN p_TenPhim VARCHAR(255),
     IN p_ThoiLuong INT,
     IN p_NgayKhoiChieu DATE,
-    IN p_GioiHanDoTuoi VARCHAR(10),
+    IN p_MaGioiHan INT,
+    IN p_Poster VARCHAR(500),
+    IN p_MoTa TEXT,
+    IN p_TrailerURL VARCHAR(500),
     IN p_MaDaoDien INT,
     IN p_DS_MaTheLoai TEXT,   -- Chuỗi dạng '1,2,3'
     IN p_DS_MaDienVien TEXT   -- Chuỗi dạng '4,5,6'
@@ -85,8 +103,8 @@ BEGIN
     START TRANSACTION;
 
     -- 1. Chèn vào bảng PHIM
-    INSERT INTO PHIM (TenPhim, ThoiLuong, NgayKhoiChieu, GioiHanDoTuoi, MaDaoDien)
-    VALUES (p_TenPhim, p_ThoiLuong, p_NgayKhoiChieu, p_GioiHanDoTuoi, p_MaDaoDien);
+    INSERT INTO PHIM (TenPhim, ThoiLuong, NgayKhoiChieu, MaGioiHan, Poster, MoTa, TrailerURL, MaDaoDien)
+    VALUES (p_TenPhim, p_ThoiLuong, p_NgayKhoiChieu, p_MaGioiHan, p_Poster, p_MoTa, p_TrailerURL, p_MaDaoDien);
     
     -- Lấy ID của bộ phim vừa tạo
     SET v_MaPhimMoi = LAST_INSERT_ID();
@@ -173,18 +191,27 @@ INSERT INTO DIENVIEN (HoTen, NgaySinh) VALUES
 ('Cillian Murphy', '1976-05-25'),
 ('Mạc Văn Khoa', '1992-05-04');
 
+-- Thêm mốc giới hạn độ tuổi
+INSERT INTO GIOIHAN_DOTUOI (KyHieu, MoTa) VALUES 
+('P', 'Phim được phép phổ biến đến người xem ở mọi độ tuổi'),
+('K', 'Phim được phổ biến đến người xem dưới 13 tuổi với điều kiện xem cùng cha, mẹ hoặc người giám hộ'),
+('T13', 'Phim được phổ biến đến người xem từ đủ 13 tuổi trở lên'),
+('T16', 'Phim được phổ biến đến người xem từ đủ 16 tuổi trở lên'),
+('T18', 'Phim được phổ biến đến người xem từ đủ 18 tuổi trở lên'),
+('C', 'Phim không được phép phổ biến');
+
 -- 4. Chèn dữ liệu vào bảng PHIM
-INSERT INTO PHIM (TenPhim, ThoiLuong, NgayKhoiChieu, GioiHanDoTuoi, MaDaoDien) VALUES 
-('Lật Mặt 7: Một Điều Ước', 138, '2024-04-26', 'T13', 1),
-('Mai', '131', '2024-02-10', 'T18', 2),
-('Nhà Bà Nữ', '102', '2023-01-22', 'T16', 2),
-('Inception', '148', '2010-07-16', 'T13', 3),
-('Oppenheimer', '180', '2023-07-21', 'T18', 3),
-('Hai Phượng', '98', '2019-02-22', 'T18', 4),
-('Em Chưa 18', '95', '2017-04-28', 'C16', 2),
-('Tiệc Trăng Máu', '118', '2020-10-23', 'T16', NULL), -- Đạo diễn khác/Chưa cập nhật
-('Bố Già', '128', '2021-03-05', 'T13', 2),
-('Chị Mười Ba', '96', '2020-12-25', 'T16', NULL);
+INSERT INTO PHIM (TenPhim, ThoiLuong, NgayKhoiChieu, MaGioiHan, Poster, MoTa, TrailerURL, MaDaoDien) VALUES 
+('Lật Mặt 7: Một Điều Ước', 138, '2024-04-26', 3, 'https://upload.wikimedia.org/wikipedia/vi/a/a2/L%E1%BA%ADt_m%E1%BA%B7t_7_M%E1%BB%99t_%C4%91i%E1%BB%81u_%C6%B0%E1%BB%9Bc_poster.jpg', 'Câu chuyện cảm động về tình mẹ con và những giá trị gia đình sâu sắc của bà Hai và 5 người con.', 'https://www.youtube.com/embed/n42rF5K4mks', 1),
+('Mai', 131, '2024-02-10', 5, 'https://upload.wikimedia.org/wikipedia/vi/1/1a/Mai_2024_poster.jpg', 'Mai là một cô gái có quá khứ đầy bi kịch, cô luôn khao khát tình yêu và hạnh phúc nhưng phải đối mặt với nhiều định kiến.', 'https://www.youtube.com/embed/1BscLq2nE2s', 2),
+('Nhà Bà Nữ', 102, '2023-01-22', 4, 'https://upload.wikimedia.org/wikipedia/vi/6/6f/Nh%C3%A0_b%C3%A0_N%E1%BB%AF_poster.jpg', 'Câu chuyện xoay quanh gia đình bà Nữ làm nghề bán bánh canh cua, với những mâu thuẫn thế hệ gay gắt.', 'https://www.youtube.com/embed/qRhhLOrsW40', 2),
+('Inception', 148, '2010-07-16', 3, 'https://upload.wikimedia.org/wikipedia/vi/1/18/Inception_OST.jpg', 'Một kẻ cắp có khả năng đi vào giấc mơ của người khác để đánh cắp bí mật, giờ đây anh ta phải thực hiện một nhiệm vụ bất khả thi: cấy ghép ý tưởng.', 'https://www.youtube.com/embed/YoHD9XEInc0', 3),
+('Oppenheimer', 180, '2023-07-21', 5, 'https://upload.wikimedia.org/wikipedia/vi/6/66/Oppenheimer_poster.jpg', 'Câu chuyện về J. Robert Oppenheimer, cha đẻ của bom nguyên tử, và những hệ lụy lịch sử từ phát minh của ông.', 'https://www.youtube.com/embed/bK6ldnjE3Y0', 3),
+('Hai Phượng', 98, '2019-02-22', 5, 'https://upload.wikimedia.org/wikipedia/vi/d/d1/Hai_Ph%C6%B0%E1%BB%A3ng_poster.jpg', 'Hành trình nghẹt thở của một người mẹ đi tìm lại đứa con gái bị bọn bắt cóc lấy đi.', 'https://www.youtube.com/embed/9G05M26-hD4', 4),
+('Em Chưa 18', 95, '2017-04-28', 4, 'https://upload.wikimedia.org/wikipedia/vi/1/18/Em_ch%C6%B0a_18_poster.jpg', 'Một tay chơi sành điệu vướng vào rắc rối pháp lý sau khi có tình một đêm với một cô bé chưa đủ 18 tuổi.', 'https://www.youtube.com/embed/aY_G2zYn9F4', 2),
+('Tiệc Trăng Máu', 118, '2020-10-23', 4, 'https://upload.wikimedia.org/wikipedia/vi/c/c2/Ti%E1%BB%87c_tr%C4%83ng_m%C3%A1u_poster.jpg', 'Bữa tiệc tân gia của một nhóm bạn thân trở nên căng thẳng khi họ quyết định công khai toàn bộ tin nhắn và cuộc gọi điện thoại.', 'https://www.youtube.com/embed/L1Z6Qf-f5YQ', NULL),
+('Bố Già', 128, '2021-03-05', 3, 'https://upload.wikimedia.org/wikipedia/vi/9/91/B%E1%BB%91_gi%C3%A0_2021_poster.jpg', 'Câu chuyện về ông Sang - một người cha bao đồng nhưng rất yêu thương gia đình trong một xóm lao động nghèo.', 'https://www.youtube.com/embed/u1mOibZ_RzE', 2),
+('Chị Mười Ba', 96, '2020-12-25', 4, 'https://upload.wikimedia.org/wikipedia/vi/5/5e/Ch%E1%BB%8B_M%C6%B0%E1%BB%9Di_Ba_poster.jpg', 'Chị Mười Ba và anh em An Cư Nghĩa Đoàn phải đối đầu với một băng đảng tội phạm nguy hiểm mới nổi.', 'https://www.youtube.com/embed/oP2rD8BqI-c', NULL);
 
 -- 5. Chèn dữ liệu vào bảng trung gian PHIM_THELOAI (Một phim có nhiều thể loại)
 INSERT INTO PHIM_THELOAI (MaPhim, MaTheLoai) VALUES 
@@ -270,6 +297,8 @@ CREATE TABLE PhongChieu (
     TenPhong VARCHAR(50) NOT NULL,
     MaCumRap INT NOT NULL,
     MaLoaiPhong INT NOT NULL,
+    SoHang INT NOT NULL DEFAULT 10,
+    SoCot INT NOT NULL DEFAULT 10,
     SucChua INT NOT NULL,
 
     CONSTRAINT PK_PhongChieu
@@ -365,15 +394,17 @@ CREATE PROCEDURE sp_TaoPhongVaGhe(
     IN p_TenPhong VARCHAR(50),
     IN p_MaCumRap INT,
     IN p_MaLoaiPhong INT,
-    IN p_SucChua INT,
+    IN p_SoHang INT,
+    IN p_SoCot INT,
     IN p_MaLoaiGheMacDinh INT
 )
 BEGIN
     DECLARE v_MaPhongMoi INT;
     DECLARE v_Hang INT DEFAULT 1;
     DECLARE v_Cot INT;
-    DECLARE v_KyTuHang CHAR(1);
+    DECLARE v_KyTuHang VARCHAR(2);
     DECLARE v_TenGhe VARCHAR(10);
+    DECLARE v_SucChua INT;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -405,24 +436,27 @@ BEGIN
         SET MESSAGE_TEXT = 'Loai ghe mac dinh khong ton tai.';
     END IF;
 
-    -- A1 đến J10 là 100 ghế
-    IF p_SucChua < 100 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Suc chua phai lon hon hoac bang 100 de tao ghe tu A1 den J10.';
-    END IF;
+    -- Tính toán sức chứa
+    SET v_SucChua = p_SoHang * p_SoCot;
 
     START TRANSACTION;
 
-    INSERT INTO PhongChieu(TenPhong, MaCumRap, MaLoaiPhong, SucChua)
-    VALUES (p_TenPhong, p_MaCumRap, p_MaLoaiPhong, p_SucChua);
+    INSERT INTO PhongChieu(TenPhong, MaCumRap, MaLoaiPhong, SoHang, SoCot, SucChua)
+    VALUES (p_TenPhong, p_MaCumRap, p_MaLoaiPhong, p_SoHang, p_SoCot, v_SucChua);
 
     SET v_MaPhongMoi = LAST_INSERT_ID();
 
-    WHILE v_Hang <= 10 DO
-        SET v_KyTuHang = CHAR(64 + v_Hang);
+    WHILE v_Hang <= p_SoHang DO
+        -- Nếu số hàng > 26 (Z), có thể mở rộng logic (AA, AB...), nhưng tạm thời giới hạn ở A-Z hoặc đơn giản là ghép số.
+        IF v_Hang <= 26 THEN
+            SET v_KyTuHang = CHAR(64 + v_Hang);
+        ELSE
+            SET v_KyTuHang = CONCAT('A', CHAR(64 + v_Hang - 26));
+        END IF;
+        
         SET v_Cot = 1;
 
-        WHILE v_Cot <= 10 DO
+        WHILE v_Cot <= p_SoCot DO
             SET v_TenGhe = CONCAT(v_KyTuHang, v_Cot);
 
             INSERT INTO Ghe(TenGhe, MaPhong, MaLoaiGhe)
@@ -593,6 +627,7 @@ CREATE TABLE KhachHang (
     HoTen VARCHAR(100) NOT NULL,
     SDT VARCHAR(15) NOT NULL UNIQUE,
     Email VARCHAR(100),
+    MatKhau VARCHAR(255) NOT NULL DEFAULT '123456',
     DiemTichLuy INT DEFAULT 0,
     MaHang INT NOT NULL,
     CONSTRAINT FK_KhachHang_Hang FOREIGN KEY (MaHang) REFERENCES HangThanhVien(MaHang)
@@ -600,6 +635,8 @@ CREATE TABLE KhachHang (
 
 CREATE TABLE NhanVien (
     MaNV INT AUTO_INCREMENT PRIMARY KEY,
+    TenDangNhap VARCHAR(50) UNIQUE,
+    MatKhau VARCHAR(255) NOT NULL DEFAULT '123456',
     HoTen VARCHAR(100) NOT NULL,
     ChucVu VARCHAR(50) NOT NULL,
     MaCumRap INT NOT NULL,
@@ -618,12 +655,13 @@ INSERT INTO DichVu (TenDichVu, GiaBan) VALUES
 INSERT INTO CumRap (TenCumRap, DiaChi, Hotline) VALUES 
 ('Cinema Hùng Vương', '123 Hùng Vương', '0901234567');
 
-INSERT INTO KhachHang (HoTen, SDT, Email, DiemTichLuy, MaHang) VALUES 
-('Nguyễn Văn A', '0901234567', 'nva@gmail.com', 500, 1),
-('Trần Thị B', '0987654321', 'ttb@gmail.com', 3500, 3);
+INSERT INTO KhachHang (HoTen, SDT, Email, MatKhau, DiemTichLuy, MaHang) VALUES 
+('Nguyễn Văn A', '0901234567', 'nva@gmail.com', '123456', 500, 1),
+('Trần Thị B', '0987654321', 'ttb@gmail.com', '123456', 3500, 3);
 
-INSERT INTO NhanVien (HoTen, ChucVu, MaCumRap) VALUES 
-('Lê Nhân Viên', 'Bán vé', 1), ('Phạm Quản Lý', 'Quản lý rạp', 1);
+INSERT INTO NhanVien (TenDangNhap, MatKhau, HoTen, ChucVu, MaCumRap) VALUES 
+('nhanvien1', '123456', 'Lê Nhân Viên', 'Bán vé', 1), 
+('admin', '123456', 'Phạm Quản Lý', 'Quản lý rạp', 1);
 
 -- 3. VIEW DANH SÁCH KHÁCH VIP
 CREATE VIEW View_DanhSachKhachHangVIP AS

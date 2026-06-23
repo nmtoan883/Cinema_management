@@ -1,14 +1,213 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card" style="text-align: center; padding: 4rem 2rem;">
-    <h1 style="font-size: 3rem; margin-bottom: 1rem;">🎟️ Đặt Vé & Giao Dịch</h1>
-    <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem auto;">
-        Phân hệ này sử dụng <strong>Database Transaction</strong> để đảm bảo việc tạo Hóa Đơn, thêm Chi Tiết Vé, và Cộng Điểm Tích Lũy được thực hiện an toàn.
-    </p>
+<div class="card" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+    <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">🎟️ Đặt Vé Phim</h2>
     
-    <form action="/datve/ban-ve" method="POST" style="max-width: 400px; margin: 0 auto;">
-        <button type="submit" class="btn" style="width: 100%; font-size: 1.2rem; padding: 1rem; background: linear-gradient(45deg, #10b981, #059669);">Tiến Hành Bán Vé (Test Transaction)</button>
+    <form action="/datve/ban-ve" method="POST" id="bookingForm">
+        
+        <!-- Bước 1: Chọn Phim -->
+        <div class="form-group">
+            <label>1. Chọn Phim Đang Chiếu</label>
+            <select id="phimSelect" class="form-control" onchange="loadSuatChieu()" required>
+                <option value="">-- Chọn Phim --</option>
+                {% for phim in ds_phim %}
+                <option value="{{ phim.MaPhim }}" {% if selected_phim_id == phim.MaPhim|string %}selected{% endif %}>
+                    {{ phim.TenPhim }} ({{ phim.GioiHanDoTuoi }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Bước 2: Chọn Suất Chiếu -->
+        <div class="form-group" id="suatChieuContainer" style="display: none;">
+            <label>2. Chọn Suất Chiếu</label>
+            <div id="suatChieuList" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <!-- Suất chiếu render bằng JS -->
+            </div>
+            <input type="hidden" name="ma_suat" id="maSuatInput" required>
+        </div>
+
+        <!-- Bước 3: Chọn Ghế -->
+        <div class="form-group" id="gheContainer" style="display: none;">
+            <label>3. Chọn Ghế Ngồi</label>
+            <div style="background: #1e293b; padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 1rem;">
+                <div style="width: 80%; height: 30px; background: #94a3b8; margin: 0 auto 2rem auto; border-radius: 4px; line-height: 30px; color: #0f172a; font-weight: bold; transform: perspective(100px) rotateX(-5deg);">MÀN HÌNH</div>
+                
+                <div id="gheList" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; justify-content: center;">
+                    <!-- Ghế render bằng JS -->
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem;">
+                <span title="Ghế Thường"><div style="display:inline-block; width: 20px; height: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; vertical-align: middle;"></div> Thường</span>
+                <span title="Ghế VIP"><div style="display:inline-block; width: 20px; height: 20px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; border-radius: 4px; vertical-align: middle;"></div> VIP</span>
+                <span title="Ghế Couple"><div style="display:inline-block; width: 20px; height: 20px; background: rgba(236, 72, 153, 0.15); border: 1px solid #ec4899; border-radius: 4px; vertical-align: middle;"></div> Couple</span>
+                <span style="border-left: 1px solid var(--border-color); padding-left: 1.5rem;"><div style="display:inline-block; width: 20px; height: 20px; background: #10b981; border-radius: 4px; vertical-align: middle;"></div> Đang chọn</span>
+                <span><div style="display:inline-block; width: 20px; height: 20px; background: #ef4444; opacity: 0.5; border-radius: 4px; vertical-align: middle;"></div> Đã bán</span>
+            </div>
+            <input type="hidden" name="ma_ghe" id="maGheInput" required>
+        </div>
+
+        <!-- Thông tin giao dịch -->
+        <div class="form-group" id="checkoutContainer" style="display: none; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
+            {% if current_user_role == 'nhanvien' %}
+            <label>Số Điện Thoại Khách Hàng (Dùng để cộng điểm)</label>
+            <input type="text" name="ma_kh" placeholder="Nhập SDT khách hàng (Bắt buộc)" required>
+            {% endif %}
+            
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                <h3 style="color: #10b981; margin-bottom: 0.5rem;">Xác nhận đặt vé</h3>
+                <p>Ghế đã chọn: <strong id="selectedGheText">Chưa chọn</strong></p>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%; margin-top: 1.5rem; font-size: 1.2rem; background: #10b981;">Thanh Toán & In Vé</button>
+        </div>
     </form>
 </div>
+
+<script>
+    // Gọi tự động nếu có phim_id truyền vào từ trang chủ
+    window.onload = function() {
+        if(document.getElementById('phimSelect').value) {
+            loadSuatChieu();
+        }
+    };
+
+    function loadSuatChieu() {
+        const phimId = document.getElementById('phimSelect').value;
+        const container = document.getElementById('suatChieuContainer');
+        const list = document.getElementById('suatChieuList');
+        const gheContainer = document.getElementById('gheContainer');
+        const checkoutContainer = document.getElementById('checkoutContainer');
+        
+        // Reset state
+        document.getElementById('maSuatInput').value = '';
+        document.getElementById('maGheInput').value = '';
+        gheContainer.style.display = 'none';
+        checkoutContainer.style.display = 'none';
+        
+        if (!phimId) {
+            container.style.display = 'none';
+            return;
+        }
+
+        fetch(`/datve/api/suatchieu/${phimId}`)
+            .then(res => res.json())
+            .then(data => {
+                list.innerHTML = '';
+                if (data.length === 0) {
+                    list.innerHTML = '<p style="color: var(--danger);">Hiện không có suất chiếu nào cho phim này.</p>';
+                } else {
+                    data.forEach(sc => {
+                        const btn = document.createElement('div');
+                        btn.style = `padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; text-align: center; background: var(--bg-card); transition: all 0.2s;`;
+                        btn.innerHTML = `<strong style="display:block; font-size: 1.1rem; color: var(--primary);">${sc.GioBatDau}</strong><span style="font-size: 0.8rem; color: var(--text-muted);">${sc.TenLoaiPhong}</span>`;
+                        
+                        btn.onclick = function() {
+                            // Reset active styles
+                            Array.from(list.children).forEach(c => {
+                                c.style.borderColor = 'var(--border-color)';
+                                c.style.background = 'var(--bg-card)';
+                            });
+                            btn.style.borderColor = 'var(--primary)';
+                            btn.style.background = 'rgba(139, 92, 246, 0.1)';
+                            
+                            document.getElementById('maSuatInput').value = sc.MaSuatChieu;
+                            loadGhe(sc.MaSuatChieu);
+                        };
+                        list.appendChild(btn);
+                    });
+                }
+                container.style.display = 'block';
+            });
+    }
+
+    function loadGhe(suatChieuId) {
+        const container = document.getElementById('gheContainer');
+        const list = document.getElementById('gheList');
+        document.getElementById('maGheInput').value = '';
+        document.getElementById('selectedGheText').innerText = 'Chưa chọn';
+        document.getElementById('checkoutContainer').style.display = 'none';
+
+        fetch(`/datve/api/ghe/${suatChieuId}`)
+            .then(res => res.json())
+            .then(data => {
+                const danh_sach_ghe = data.ghe;
+                const so_cot = data.so_cot;
+                
+                list.style.gridTemplateColumns = `repeat(${so_cot}, 1fr)`;
+                list.innerHTML = '';
+                
+                danh_sach_ghe.forEach(ghe => {
+                    const btn = document.createElement('div');
+                    btn.innerText = ghe.TenGhe;
+                    btn.style = `padding: 0.5rem; text-align: center; border-radius: 4px; cursor: pointer; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s;`;
+                    
+                    // Xử lý giữ đúng vị trí tọa độ thật của ghế trên bản đồ
+                    const match = ghe.TenGhe.match(/^([A-Z]+)(\d+)$/);
+                    if (match) {
+                        const rowStr = match[1];
+                        const colNum = parseInt(match[2]);
+                        
+                        let rowNum = 0;
+                        for (let i = 0; i < rowStr.length; i++) {
+                            rowNum = rowNum * 26 + (rowStr.charCodeAt(i) - 64);
+                        }
+                        
+                        btn.style.gridRow = rowNum;
+                        btn.style.gridColumn = colNum;
+                    }
+
+                    if (ghe.DaBan === 1) {
+                        btn.style.background = '#ef4444';
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.title = "Ghế đã được bán";
+                    } else {
+                        // Chọn màu nền và viền tùy theo loại ghế
+                        let defaultBg = 'rgba(255,255,255,0.05)';
+                        let defaultBorder = 'rgba(255,255,255,0.2)';
+                        
+                        if (ghe.TenLoai === 'VIP') {
+                            defaultBg = 'rgba(245, 158, 11, 0.15)';
+                            defaultBorder = '#f59e0b';
+                            btn.style.color = '#f59e0b';
+                        } else if (ghe.TenLoai === 'Couple') {
+                            defaultBg = 'rgba(236, 72, 153, 0.15)';
+                            defaultBorder = '#ec4899';
+                            btn.style.color = '#ec4899';
+                        }
+                        
+                        btn.style.background = defaultBg;
+                        btn.style.borderColor = defaultBorder;
+                        btn.dataset.defaultBg = defaultBg;
+                        btn.dataset.defaultBorder = defaultBorder;
+                        
+                        btn.onclick = function() {
+                            // Reset all other available seats to their original color
+                            Array.from(list.children).forEach(c => {
+                                if(c.style.background !== 'rgb(239, 68, 68)' && c.dataset.defaultBg) { // not sold
+                                    c.style.background = c.dataset.defaultBg;
+                                    c.style.borderColor = c.dataset.defaultBorder;
+                                }
+                            });
+                            
+                            // Highlight the selected seat
+                            btn.style.background = '#10b981';
+                            btn.style.borderColor = '#10b981';
+                            btn.style.color = '#fff';
+                            
+                            document.getElementById('maGheInput').value = ghe.MaGhe;
+                            document.getElementById('selectedGheText').innerText = ghe.TenGhe + ` (${ghe.TenLoai})`;
+                            document.getElementById('checkoutContainer').style.display = 'block';
+                            document.getElementById('checkoutContainer').scrollIntoView({ behavior: 'smooth' });
+                        };
+                    }
+                    list.appendChild(btn);
+                });
+                container.style.display = 'block';
+            });
+    }
+</script>
 {% endblock %}

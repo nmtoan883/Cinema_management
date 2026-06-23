@@ -25,29 +25,36 @@
 
     <div class="admin-grid">
         <section class="panel">
-            <h2>{{ 'Cap nhat cum rap' if cum_rap_editing_id else 'Them cum rap' }}</h2>
-            <form method="post" action="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap_editing_id) if cum_rap_editing_id else url_for('rap.them_cum_rap') }}">
-                <div class="form-group">
-                    <label for="TenCumRap">Ten cum rap</label>
-                    <input id="TenCumRap" name="TenCumRap" type="text" value="{{ cum_rap_form_data.TenCumRap or '' }}" required>
+        <!-- Quản lý Cụm Rạp -->
+        <section id="cumrap" class="tab-pane {{ 'active' if active_section == 'cumrap' else '' }}">
+            <div class="grid" style="grid-template-columns: 1fr 2fr;">
+                {% if session.chuc_vu == 'Admin' %}
+                <div class="card">
+                    <h2>{{ 'Sửa Cum Rap' if cum_rap_form_data else 'Them Cum Rap' }}</h2>
+                    <form method="post" action="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap_editing_id) if cum_rap_editing_id else url_for('rap.them_cum_rap') }}">
+                        <div class="form-group">
+                            <label for="TenCumRap">Ten cum rap</label>
+                            <input id="TenCumRap" name="TenCumRap" type="text" value="{{ cum_rap_form_data.TenCumRap or '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="DiaChi">Dia chi</label>
+                            <input id="DiaChi" name="DiaChi" type="text" value="{{ cum_rap_form_data.DiaChi or '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Hotline">Hotline</label>
+                            <input id="Hotline" name="Hotline" type="text" value="{{ cum_rap_form_data.Hotline or '' }}" required>
+                        </div>
+                        <button type="submit" class="btn">{{ 'Luu thay doi' if cum_rap_editing_id else 'Them cum rap' }}</button>
+                    </form>
                 </div>
-
-                <div class="form-group">
-                    <label for="DiaChi">Dia chi</label>
-                    <input id="DiaChi" name="DiaChi" type="text" value="{{ cum_rap_form_data.DiaChi or '' }}" required>
+                {% else %}
+                <div class="card" style="display: flex; align-items: center; justify-content: center; color: var(--text-muted); text-align: center;">
+                    <p>Chỉ Admin mới có quyền thêm/sửa Cụm rạp.<br>Bạn đang xem với quyền Quản lý rạp.</p>
                 </div>
+                {% endif %}
 
-                <div class="form-group">
-                    <label for="Hotline">Hotline</label>
-                    <input id="Hotline" name="Hotline" type="text" value="{{ cum_rap_form_data.Hotline or '' }}" minlength="9" maxlength="15" inputmode="numeric" pattern="[0-9]{9,15}" required>
-                </div>
-
-                <button type="submit" class="btn">{{ 'Luu thay doi' if cum_rap_editing_id else 'Them cum rap' }}</button>
-            </form>
-        </section>
-
-        <section class="panel">
-            <h2>Danh sach cum rap</h2>
+                <div class="card">
+                    <h2>Danh sach Cum Rap</h2>
             {% if ds_cum_rap %}
             <table>
                 <thead>
@@ -235,15 +242,25 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="MaCumRapPhong">Cum rap</label>
-                    <select id="MaCumRapPhong" name="MaCumRap" required>
-                        <option value="">Chon cum rap</option>
-                        {% for cum_rap in ds_cum_rap %}
-                        <option value="{{ cum_rap.MaCumRap }}" {{ 'selected' if phong_chieu_form_data.MaCumRap == cum_rap.MaCumRap else '' }}>
-                            {{ cum_rap.TenCumRap }}
-                        </option>
-                        {% endfor %}
-                    </select>
+                    <label for="MaCumRap">Cum rap</label>
+                    {% if session.chuc_vu == 'Admin' %}
+                        <select id="MaCumRap" name="MaCumRap" required>
+                            <option value="">-- Chon cum rap --</option>
+                            {% for rap in ds_cum_rap %}
+                                <option value="{{ rap.MaCumRap }}" {{ 'selected' if phong_chieu_form_data.MaCumRap == rap.MaCumRap else '' }}>
+                                    {{ rap.TenCumRap }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <select id="MaCumRap" disabled>
+                            {% for rap in ds_cum_rap %}
+                                {% if rap.MaCumRap == session.ma_cum_rap %}
+                                    <option value="{{ rap.MaCumRap }}" selected>{{ rap.TenCumRap }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    {% endif %}
                 </div>
 
                 <div class="form-group">
@@ -259,8 +276,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="SucChua">Suc chua</label>
-                    <input id="SucChua" name="SucChua" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SucChua or '' }}" required>
+                    <label for="SoHang">So hang</label>
+                    <input id="SoHang" name="SoHang" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SoHang or '10' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="SoCot">So ghe moi hang</label>
+                    <input id="SoCot" name="SoCot" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SoCot or '10' }}" required>
                 </div>
 
                 <button type="submit" class="btn">{{ 'Luu thay doi' if phong_chieu_editing_id else 'Them phong chieu' }}</button>
@@ -277,12 +299,22 @@
 
                 <div class="form-group">
                     <label for="MaCumRapAuto">Cum rap</label>
-                    <select id="MaCumRapAuto" name="MaCumRap" required>
-                        <option value="">Chon cum rap</option>
-                        {% for cum_rap in ds_cum_rap %}
-                        <option value="{{ cum_rap.MaCumRap }}">{{ cum_rap.TenCumRap }}</option>
-                        {% endfor %}
-                    </select>
+                    {% if session.chuc_vu == 'Admin' %}
+                        <select id="MaCumRapAuto" name="MaCumRap" required>
+                            <option value="">-- Chon cum rap --</option>
+                            {% for rap in ds_cum_rap %}
+                                <option value="{{ rap.MaCumRap }}">{{ rap.TenCumRap }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <select id="MaCumRapAuto" disabled>
+                            {% for rap in ds_cum_rap %}
+                                {% if rap.MaCumRap == session.ma_cum_rap %}
+                                    <option value="{{ rap.MaCumRap }}" selected>{{ rap.TenCumRap }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    {% endif %}
                 </div>
 
                 <div class="form-group">
@@ -296,8 +328,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="SucChuaAuto">Suc chua</label>
-                    <input id="SucChuaAuto" name="SucChua" type="number" min="100" step="1" required>
+                    <label for="SoHangAuto">So hang</label>
+                    <input id="SoHangAuto" name="SoHang" type="number" min="1" step="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="SoCotAuto">So ghe moi hang</label>
+                    <input id="SoCotAuto" name="SoCot" type="number" min="1" step="1" required>
                 </div>
 
                 <div class="form-group">
@@ -324,8 +361,9 @@
                         <th>Ten phong</th>
                         <th>Cum rap</th>
                         <th>Loai phong</th>
+                        <th>Kich thuoc (Hang x Cot)</th>
                         <th>Suc chua</th>
-                        <th>Tac vu</th>
+                        <th>Thao tac</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -335,6 +373,7 @@
                         <td><strong>{{ phong.TenPhong }}</strong></td>
                         <td>{{ phong.TenCumRap }}</td>
                         <td>{{ phong.TenLoaiPhong }}</td>
+                        <td>{{ phong.SoHang }} x {{ phong.SoCot }}</td>
                         <td>{{ phong.SucChua }}</td>
                         <td>
                             <div class="table-actions">

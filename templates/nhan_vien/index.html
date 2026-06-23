@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1>Quản lý Nhân Viên</h1>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 2fr;">
+    <!-- Form Thêm / Sửa Nhân Viên -->
+    <section class="card">
+        <h2>{{ 'Cập nhật Nhân Viên' if nhan_vien_form else 'Thêm Nhân Viên Mới' }}</h2>
+        <form method="post" action="{{ url_for('nhan_vien.sua_nhan_vien', ma_nv=nhan_vien_form.MaNV) if nhan_vien_form else url_for('nhan_vien.them_nhan_vien') }}">
+            <div class="form-group">
+                <label for="HoTen">Họ Tên</label>
+                <input id="HoTen" name="HoTen" type="text" value="{{ nhan_vien_form.HoTen if nhan_vien_form else '' }}" required>
+            </div>
+
+            {% if not nhan_vien_form %}
+            <div class="form-group">
+                <label for="TenDangNhap">Tên đăng nhập (Username)</label>
+                <input id="TenDangNhap" name="TenDangNhap" type="text" required>
+            </div>
+            {% else %}
+            <div class="form-group">
+                <label for="TenDangNhap">Tên đăng nhập</label>
+                <input id="TenDangNhap" type="text" value="{{ nhan_vien_form.TenDangNhap }}" disabled title="Không thể đổi tên đăng nhập">
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="MatKhau">{{ 'Mật khẩu mới (Để trống nếu không muốn đổi)' if nhan_vien_form else 'Mật khẩu' }}</label>
+                <input id="MatKhau" name="MatKhau" type="password" {{ 'required' if not nhan_vien_form else '' }}>
+            </div>
+
+            <div class="form-group">
+                <label for="ChucVu">Chức vụ</label>
+                {% if session.chuc_vu == 'Admin' %}
+                    <select id="ChucVu" name="ChucVu" required>
+                        <option value="Nhân Viên Bán Vé" {{ 'selected' if nhan_vien_form and nhan_vien_form.ChucVu == 'Nhân Viên Bán Vé' else '' }}>Nhân Viên Bán Vé</option>
+                        <option value="Quản Lý" {{ 'selected' if nhan_vien_form and nhan_vien_form.ChucVu == 'Quản Lý' else '' }}>Quản Lý Rạp</option>
+                        <option value="Admin" {{ 'selected' if nhan_vien_form and nhan_vien_form.ChucVu == 'Admin' else '' }}>Quản Trị Viên (Admin)</option>
+                    </select>
+                {% else %}
+                    <input id="ChucVu" type="text" value="Nhân Viên Bán Vé" disabled title="Quản lý chỉ được thêm Nhân viên bán vé">
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="MaCumRap">Làm việc tại Cụm rạp</label>
+                {% if session.chuc_vu == 'Admin' %}
+                    <select id="MaCumRap" name="MaCumRap" required>
+                        <option value="">-- Chọn cụm rạp --</option>
+                        {% for rap in ds_cum_rap %}
+                            <option value="{{ rap.MaCumRap }}" {{ 'selected' if nhan_vien_form and nhan_vien_form.MaCumRap == rap.MaCumRap else '' }}>
+                                {{ rap.TenCumRap }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <select id="MaCumRap" disabled>
+                        {% for rap in ds_cum_rap %}
+                            <option value="{{ rap.MaCumRap }}" selected>{{ rap.TenCumRap }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn">{{ 'Lưu thay đổi' if nhan_vien_form else 'Tạo tài khoản' }}</button>
+                {% if nhan_vien_form %}
+                <a href="{{ url_for('nhan_vien.index') }}" class="btn btn-secondary" style="text-align: center;">Hủy</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <!-- Danh sách Nhân Viên -->
+    <section class="card">
+        <h2>Danh sách Tài khoản</h2>
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Họ Tên</th>
+                        <th>Username</th>
+                        <th>Chức vụ</th>
+                        <th>Cụm rạp</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if ds_nhan_vien %}
+                        {% for nv in ds_nhan_vien %}
+                        <tr>
+                            <td>#{{ nv.MaNV }}</td>
+                            <td><strong>{{ nv.HoTen }}</strong></td>
+                            <td><span style="background: rgba(139, 92, 246, 0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px;">{{ nv.TenDangNhap }}</span></td>
+                            <td>{{ nv.ChucVu }}</td>
+                            <td>{{ nv.TenCumRap }}</td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="{{ url_for('nhan_vien.sua_nhan_vien', ma_nv=nv.MaNV) }}" class="btn btn-secondary">Sửa</a>
+                                    {% if session.user_id != nv.MaNV %}
+                                    <form method="post" action="{{ url_for('nhan_vien.xoa_nhan_vien', ma_nv=nv.MaNV) }}" onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản nhân viên này không?');">
+                                        <button type="submit" class="btn btn-danger">Xóa</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu nhân viên.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
