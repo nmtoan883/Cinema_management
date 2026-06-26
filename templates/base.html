@@ -6,6 +6,12 @@
     <title>{{ title }} - Hệ Thống Rạp Chiếu Phim</title>
     <meta name="description" content="Hệ thống quản lý rạp chiếu phim hiện đại">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='extracted_styles.css') }}">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
 </head>
 <body>
     <nav class="navbar">
@@ -13,26 +19,28 @@
         <div class="nav-links">
             {% if current_user_role == 'nhanvien' %}
                 {% if session.chuc_vu in ['Admin', 'Quản Lý'] %}
-                    <a href="/phim" class="{{ 'active' if 'phim' in request.path }}">1. Phim</a>
-                    <a href="/rap" class="{{ 'active' if 'rap' in request.path }}">2. Rạp</a>
-                    <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">3. Lịch Chiếu</a>
+                    <a href="/phim" class="{{ 'active' if 'phim' in request.path }}">Phim</a>
+                    <a href="/rap" class="{{ 'active' if 'rap' in request.path }}">Rạp</a>
+                    <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">Lịch Chiếu</a>
+                    <a href="/dichvu" class="{{ 'active' if 'dichvu' in request.path }}">Bắp Nước</a>
                 {% endif %}
-                <a href="/khachhang" class="{{ 'active' if 'khachhang' in request.path }}">4. Khách Hàng</a>
-                <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">5. Bán Vé</a>
+                <a href="/khachhang" class="{{ 'active' if 'khachhang' in request.path }}">Khách Hàng</a>
+                <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">Bán Vé</a>
                 {% if session.chuc_vu in ['Admin', 'Quản Lý'] %}
-                    <a href="/nhanvien" class="{{ 'active' if 'nhanvien' in request.path }}">6. Nhân Viên</a>
+                    <a href="/nhanvien" class="{{ 'active' if 'nhanvien' in request.path }}">Nhân Viên</a>
+                    <a href="/giave" class="{{ 'active' if 'giave' in request.path }} extracted-style-1000">Giá Vé & Phụ Thu</a>
                 {% endif %}
             {% elif current_user_role == 'khach' %}
                 <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">🎟️ Đặt Vé Phim</a>
             {% else %}
                 <a href="/suatchieu" class="{{ 'active' if 'suatchieu' in request.path }}">Lịch Chiếu</a>
-                <a href="/auth/login" class="btn" style="padding: 0.4rem 1rem; margin-left: 1rem;">Đăng Nhập</a>
+                <a href="/auth/login" class="btn inline-style-1" >Đăng Nhập</a>
             {% endif %}
             
             {% if current_user_name %}
-            <div style="margin-left: 2rem; padding-left: 1rem; border-left: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
-                <span style="color: var(--primary); font-weight: 500;">👤 {{ current_user_name }}</span>
-                <a href="/auth/logout" style="color: var(--danger); font-size: 0.9rem; text-decoration: none;">Đăng Xuất</a>
+            <div class="inline-style-2" >
+                <a class="inline-style-3 extracted-style-1001" href="/auth/profile">👤 {{ current_user_name }}</a>
+                <a class="inline-style-4" href="/auth/logout" >Đăng Xuất</a>
             </div>
             {% endif %}
         </div>
@@ -52,5 +60,14 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <!-- jQuery and DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    {% block scripts %}
+    {% endblock %}
 </body>
 </html>

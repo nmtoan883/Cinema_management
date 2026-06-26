@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <div class="extracted-style-1027">
+        <h2><i class="fas fa-users"></i> Quản Lý Diễn Viên</h2>
+        <div>
+            <a href="/phim/dien-vien/them" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Diễn Viên</a>
+            <a href="/phim" class="btn extracted-style-1028">Trở về Phim</a>
+        </div>
+    </div>
+
+    <table class="table table-striped table-bordered" id="dienVienTable">
+        <thead>
+            <tr>
+                <th>Mã Diễn Viên</th>
+                <th>Họ Tên</th>
+                <th>Ngày Sinh</th>
+                <th>Thao Tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dv in ds_dien_vien %}
+            <tr>
+                <td>{{ dv.MaDienVien }}</td>
+                <td><strong>{{ dv.HoTen }}</strong></td>
+                <td>{{ dv.NgaySinh.strftime('%d/%m/%Y') if dv.NgaySinh else '' }}</td>
+                <td>
+                    <a href="/phim/dien-vien/sua/{{ dv.MaDienVien }}" class="btn btn-warning extracted-style-1029">Sửa</a>
+                    <a href="/phim/dien-vien/xoa/{{ dv.MaDienVien }}" class="btn btn-danger extracted-style-1030" onclick="return confirm('Bạn có chắc muốn xóa diễn viên này không?');">Xóa</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#dienVienTable').DataTable({
+            "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json" },
+            "pageLength": 10,
+            "ordering": false
+        });
+    });
+</script>
+{% endblock %}

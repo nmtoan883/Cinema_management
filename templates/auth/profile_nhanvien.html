@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card extracted-style-1010">
+    <h2 class="extracted-style-1003"><i class="fas fa-user-shield"></i> Hồ Sơ Nhân Viên</h2>
+    
+    <div class="extracted-style-1011">
+        <p><strong>Họ tên:</strong> {{ user.HoTen }}</p>
+        <p><strong>Chức vụ:</strong> <span class="badge extracted-style-1012">{{ user.ChucVu }}</span></p>
+        <p><strong>Tên đăng nhập:</strong> {{ user.TenDangNhap }}</p>
+        
+        <h4 class="extracted-style-1013">Nơi công tác</h4>
+        <p><strong>Cụm rạp:</strong> {{ user.TenCumRap }}</p>
+        <p><strong>Địa chỉ:</strong> {{ user.DiaChi }}</p>
+    </div>
+</div>
+{% endblock %}

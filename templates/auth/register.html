@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 2rem auto;">
-    <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">Đăng Ký Thành Viên Mới</h2>
+<div class="card inline-style-67" >
+    <h2 class="inline-style-68" >Đăng Ký Thành Viên Mới</h2>
     
     <form action="/auth/register" method="POST">
         <div class="form-group">
@@ -25,11 +25,11 @@
             <input type="password" name="mat_khau" placeholder="Tạo mật khẩu an toàn" required>
         </div>
         
-        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; font-size: 1.1rem; background: #10b981;">Đăng Ký Ngay</button>
+        <button type="submit" class="btn inline-style-69" >Đăng Ký Ngay</button>
     </form>
     
-    <div style="text-align: center; margin-top: 1.5rem;">
-        <p style="color: var(--text-muted);">Đã có tài khoản? <a href="/auth/login" style="color: var(--primary); text-decoration: none; font-weight: 500;">Đăng nhập</a></p>
+    <div class="inline-style-70" >
+        <p class="inline-style-65" >Đã có tài khoản? <a class="inline-style-71" href="/auth/login" >Đăng nhập</a></p>
     </div>
 </div>
 {% endblock %}

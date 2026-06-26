@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<div class="inline-style-132" >
     <h1>🔞 Quản Lý Giới Hạn Độ Tuổi</h1>
-    <a href="/phim/gioi-han/them" class="btn" style="background: var(--primary);">+ Thêm Mốc Tuổi</a>
+    <a href="/phim/gioi-han/them" class="btn inline-style-133" >+ Thêm Mốc Tuổi</a>
 </div>
 
-<div class="card" style="padding: 0; overflow: hidden;">
+<div class="card inline-style-134" >
     <table class="table">
         <thead>
             <tr>
@@ -19,13 +19,13 @@
             {% for gh in ds_gioi_han %}
             <tr>
                 <td>#{{ gh.MaGioiHan }}</td>
-                <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold;">{{ gh.KyHieu }}</span></td>
-                <td style="color: var(--text-muted);">{{ gh.MoTa }}</td>
+                <td><span class="inline-style-135" >{{ gh.KyHieu }}</span></td>
+                <td class="inline-style-65" >{{ gh.MoTa }}</td>
             </tr>
             {% endfor %}
             {% if not ds_gioi_han %}
             <tr>
-                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                <td class="inline-style-131" colspan="3" >
                     Chưa có mốc độ tuổi nào.
                 </td>
             </tr>

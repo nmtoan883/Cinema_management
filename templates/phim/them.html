@@ -2,29 +2,29 @@
 
 {% block content %}
 <div class="card">
-    <h1>🎬 Thêm Phim Mới</h1>
+    <h1>🎬 {{ 'Sửa Phim' if phim else 'Thêm Phim Mới' }}</h1>
 
     <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
             <label>Tên Phim</label>
-            <input type="text" name="ten_phim" required>
+            <input type="text" name="ten_phim" value="{{ phim.TenPhim if phim else '' }}" required>
         </div>
 
         <div class="form-group">
             <label>Thời Lượng (phút)</label>
-            <input type="number" name="thoi_luong" required>
+            <input type="number" name="thoi_luong" value="{{ phim.ThoiLuong if phim else '' }}" required>
         </div>
 
         <div class="form-group">
             <label>Ngày Khởi Chiếu</label>
-            <input type="date" name="ngay_khoi_chieu" required>
+            <input type="date" name="ngay_khoi_chieu" value="{{ phim.NgayKhoiChieu if phim else '' }}" required>
         </div>
 
         <div class="form-group">
             <label>Giới Hạn Độ Tuổi</label>
             <select name="ma_gioi_han" required>
                 {% for gh in ds_gioi_han %}
-                <option value="{{ gh.MaGioiHan }}">
+                <option value="{{ gh.MaGioiHan }}" {% if phim and phim.MaGioiHan == gh.MaGioiHan %}selected{% endif %}>
                     {{ gh.KyHieu }} - {{ gh.MoTa }}
                 </option>
                 {% endfor %}
@@ -33,40 +33,81 @@
 
         <div class="form-group">
             <label>Link Trailer (Youtube Embed URL)</label>
-            <input type="url" name="trailer" placeholder="https://www.youtube.com/embed/..." required>
+            <input type="url" name="trailer" placeholder="https://www.youtube.com/embed/..." value="{{ phim.TrailerURL if phim else '' }}">
         </div>
 
         <div class="form-group">
-            <label>Tải Lên Ảnh Poster</label>
-            <input type="file" name="poster_file" accept="image/*" required>
+            <label>Tải Lên Ảnh Poster (Bỏ trống nếu giữ nguyên)</label>
+            <input type="file" name="poster_file" accept="image/*" {{ 'required' if not phim else '' }}>
+            {% if phim and phim.Poster %}
+            <div class="inline-style-147" >
+                <p>Poster hiện tại:</p>
+                <img class="inline-style-148" src="{{ phim.Poster }}" >
+            </div>
+            {% endif %}
         </div>
 
         <div class="form-group">
             <label>Mô Tả Nội Dung Phim</label>
-            <textarea name="mo_ta" rows="4" required style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);"></textarea>
+            <textarea class="inline-style-149" name="mo_ta" rows="4" required >{{ phim.MoTa if phim else '' }}</textarea>
         </div>
 
+        <div class="form-group">
+            <label>Đạo Diễn</label>
+            <select name="ma_dao_dien" class="form-control">
+                <option value="">-- Chọn Đạo Diễn --</option>
+                {% for dd in ds_dao_dien %}
+                <option value="{{ dd.MaDaoDien }}" {% if phim and phim.MaDaoDien == dd.MaDaoDien %}selected{% endif %}>{{ dd.HoTen }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Diễn Viên <span class="extracted-style-1031">(Giữ Ctrl/Cmd để chọn nhiều người)</span></label>
+            <select name="ma_dien_vien[]" class="form-control extracted-style-1032" multiple>
+                {% for dv in ds_dien_vien %}
+                <option value="{{ dv.MaDienVien }}" {% if phim and phim.DSDienVien and dv.MaDienVien in phim.DSDienVien %}selected{% endif %}>{{ dv.HoTen }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
         <div class="form-group">
             <label>Thể Loại</label>
             <select name="ma_the_loai">
                 {% for tl in ds_the_loai %}
-                <option value="{{ tl.MaTheLoai }}">
+                <option value="{{ tl.MaTheLoai }}" {% if phim and phim.MaTheLoai == tl.MaTheLoai %}selected{% endif %}>
                     {{ tl.TenTheLoai }}
                 </option>
                 {% endfor %}
             </select>
         </div>
 
-        <div style="margin-top:20px;">
+        <div class="inline-style-150" >
             <button type="submit" class="btn">
-                💾 Lưu Phim
+                💾 {{ 'Lưu Thay Đổi' if phim else 'Lưu Phim' }}
             </button>
 
-            <a href="/phim" class="btn"
-               style="background:#6b7280;">
+            <a href="/phim" class="btn inline-style-151"
+               >
                Hủy
             </a>
         </div>
     </form>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('select[name="ma_dien_vien[]"]').select2({
+            placeholder: "Gõ để tìm kiếm và chọn diễn viên...",
+            allowClear: true,
+            width: '100%',
+            // Basic styling for dark theme compatibility
+            containerCssClass: ':all:',
+        });
+    });
+</script>
+
 {% endblock %}

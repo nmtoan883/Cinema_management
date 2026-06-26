@@ -61,70 +61,22 @@ def _loai_phong_da_ton_tai(ten_loai_phong, ma_loai_phong=None):
     return bool(database.fetch_all(query, tuple(params)))
 
 
-def _du_lieu_loai_phong_hop_le(ten_loai_phong, phu_thu, ma_loai_phong=None):
-    if not ten_loai_phong or not phu_thu:
-        return None, 'Vui long nhap day du ten loai phong va phu thu.'
-
-    try:
-        phu_thu_value = Decimal(phu_thu)
-    except InvalidOperation:
-        return None, 'Phu thu phai la mot so hop le.'
-
-    if phu_thu_value < 0:
-        return None, 'Phu thu khong duoc am.'
-
-    if _loai_phong_da_ton_tai(ten_loai_phong, ma_loai_phong):
-        return None, 'Loai phong nay da ton tai.'
-
-    return phu_thu_value, None
+def _du_lieu_loai_phong_hop_le(ten_loai_phong, ma_loai_phong=None):
+    if not ten_loai_phong:
+        return 'Vui long nhap day du ten loai phong.'
+    
+    if _kiem_tra_trung_lap('LoaiPhong', 'TenLoaiPhong', ten_loai_phong, 'MaLoaiPhong', ma_loai_phong):
+        return 'Ten loai phong nay da ton tai.'
+    return None
 
 
-def _loai_ghe_da_ton_tai(ten_loai_ghe, ma_loai_ghe=None):
-    query = """
-        SELECT MaLoaiGhe
-        FROM LoaiGhe
-        WHERE TenLoai = %s
-    """
-    params = [ten_loai_ghe]
-
-    if ma_loai_ghe is not None:
-        query += " AND MaLoaiGhe <> %s"
-        params.append(ma_loai_ghe)
-
-    return bool(database.fetch_all(query, tuple(params)))
-
-
-def _du_lieu_loai_ghe_hop_le(ten_loai_ghe, phu_thu, ma_loai_ghe=None):
-    if not ten_loai_ghe or not phu_thu:
-        return None, 'Vui long nhap day du ten loai ghe va phu thu.'
-
-    try:
-        phu_thu_value = Decimal(phu_thu)
-    except InvalidOperation:
-        return None, 'Phu thu ghe phai la mot so hop le.'
-
-    if phu_thu_value < 0:
-        return None, 'Phu thu ghe khong duoc am.'
-
-    if _loai_ghe_da_ton_tai(ten_loai_ghe, ma_loai_ghe):
-        return None, 'Loai ghe nay da ton tai.'
-
-    return phu_thu_value, None
-
-
-def _phong_chieu_da_ton_tai(ten_phong, ma_cum_rap, ma_phong=None):
-    query = """
-        SELECT MaPhong
-        FROM PhongChieu
-        WHERE TenPhong = %s AND MaCumRap = %s
-    """
-    params = [ten_phong, ma_cum_rap]
-
-    if ma_phong is not None:
-        query += " AND MaPhong <> %s"
-        params.append(ma_phong)
-
-    return bool(database.fetch_all(query, tuple(params)))
+def _du_lieu_loai_ghe_hop_le(ten_loai_ghe, ma_loai_ghe=None):
+    if not ten_loai_ghe:
+        return 'Vui long nhap day du ten loai ghe.'
+    
+    if _kiem_tra_trung_lap('LoaiGhe', 'TenLoai', ten_loai_ghe, 'MaLoaiGhe', ma_loai_ghe):
+        return 'Ten loai ghe nay da ton tai.'
+    return None
 
 
 def _cum_rap_hop_le(ma_cum_rap):
@@ -135,52 +87,48 @@ def _loai_phong_hop_le(ma_loai_phong):
     return bool(database.fetch_all("SELECT MaLoaiPhong FROM LoaiPhong WHERE MaLoaiPhong = %s", (ma_loai_phong,)))
 
 
-def _du_lieu_phong_chieu_hop_le(ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_phong=None):
-    if not ten_phong or not ma_cum_rap or not ma_loai_phong or not so_hang or not so_cot:
-        return None, None, None, None, 'Vui long nhap day du ten phong, cum rap, loai phong, so hang va so cot.'
+def _du_lieu_phong_chieu_hop_le(ten_phong, ma_cum_rap, so_hang, so_cot, ma_phong=None):
+    if not ten_phong or not ma_cum_rap or not so_hang or not so_cot:
+        return None, None, None, 'Vui long nhap day du ten phong, cum rap, so hang va so cot.'
 
     try:
         ma_cum_rap_value = int(ma_cum_rap)
-        ma_loai_phong_value = int(ma_loai_phong)
         so_hang_value = int(so_hang)
         so_cot_value = int(so_cot)
     except ValueError:
-        return None, None, None, None, 'Cum rap, loai phong, so hang va so cot phai la gia tri hop le.'
+        return None, None, None, 'Cum rap, so hang va so cot phai la gia tri hop le.'
 
     if so_hang_value <= 0 or so_cot_value <= 0:
-        return None, None, None, None, 'So hang va so cot phai lon hon 0.'
+        return None, None, None, 'So hang va so cot phai lon hon 0.'
 
     if not _cum_rap_hop_le(ma_cum_rap_value):
-        return None, None, None, None, 'Cum rap khong ton tai.'
-
-    if not _loai_phong_hop_le(ma_loai_phong_value):
-        return None, None, None, None, 'Loai phong khong ton tai.'
+        return None, None, None, 'Cum rap khong ton tai.'
 
     if _phong_chieu_da_ton_tai(ten_phong, ma_cum_rap_value, ma_phong):
-        return None, None, None, None, 'Ten phong da ton tai trong cum rap nay.'
+        return None, None, None, 'Ten phong da ton tai trong cum rap nay.'
 
-    return ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, None
+    return ma_cum_rap_value, so_hang_value, so_cot_value, None
 
 
-def _du_lieu_tao_phong_va_ghe_hop_le(ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_loai_ghe_mac_dinh):
-    ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
-        ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot
+def _du_lieu_tao_phong_va_ghe_hop_le(ten_phong, ma_cum_rap, so_hang, so_cot, ma_loai_ghe_mac_dinh):
+    ma_cum_rap_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
+        ten_phong, ma_cum_rap, so_hang, so_cot
     )
     if loi:
-        return None, None, None, None, None, loi
+        return None, None, None, None, loi
 
     if not ma_loai_ghe_mac_dinh:
-        return None, None, None, None, None, 'Vui long chon loai ghe mac dinh.'
+        return None, None, None, None, 'Vui long chon loai ghe mac dinh.'
 
     try:
         ma_loai_ghe_value = int(ma_loai_ghe_mac_dinh)
     except ValueError:
-        return None, None, None, None, None, 'Loai ghe mac dinh phai la gia tri hop le.'
+        return None, None, None, None, 'Loai ghe mac dinh phai la gia tri hop le.'
 
-    if not _loai_ghe_hop_le(ma_loai_ghe_value):
-        return None, None, None, None, None, 'Loai ghe mac dinh khong ton tai.'
+    if ma_loai_ghe_value != 0 and not _loai_ghe_hop_le(ma_loai_ghe_value):
+        return None, None, None, None, 'Loai ghe mac dinh khong ton tai.'
 
-    return ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, ma_loai_ghe_value, None
+    return ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value, None
 
 
 def _phong_hop_le(ma_phong):
@@ -295,15 +243,12 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
                 pc.MaPhong,
                 pc.TenPhong,
                 pc.MaCumRap,
-                pc.MaLoaiPhong,
                 pc.SoHang,
                 pc.SoCot,
                 pc.SucChua,
-                cr.TenCumRap,
-                lp.TenLoaiPhong
+                cr.TenCumRap
             FROM PhongChieu pc
             JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
-            JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
             ORDER BY pc.MaPhong ASC
             """
         )
@@ -314,35 +259,69 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
                 pc.MaPhong,
                 pc.TenPhong,
                 pc.MaCumRap,
-                pc.MaLoaiPhong,
                 pc.SoHang,
                 pc.SoCot,
                 pc.SucChua,
-                cr.TenCumRap,
-                lp.TenLoaiPhong
+                cr.TenCumRap
             FROM PhongChieu pc
             JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
-            JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
             WHERE pc.MaCumRap = %s
             ORDER BY pc.MaPhong ASC
             """, (session.get('ma_cum_rap'),)
         )
 
-    ds_ghe = database.fetch_all(
-        """
+    from flask import request
+    import math
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    loc_cum_rap = request.args.get('loc_cum_rap', '')
+    loc_phong = request.args.get('loc_phong', '')
+    
+    where_clauses = ["1=1"]
+    params_count = []
+    
+    if session.get('chuc_vu') != 'Admin':
+        where_clauses.append("pc.MaCumRap = %s")
+        params_count.append(session.get('ma_cum_rap'))
+    else:
+        if loc_cum_rap:
+            where_clauses.append("pc.MaCumRap = %s")
+            params_count.append(loc_cum_rap)
+            
+    if loc_phong:
+        where_clauses.append("g.MaPhong = %s")
+        params_count.append(loc_phong)
+        
+    where_str = " AND ".join(where_clauses)
+    
+    query_count = f"SELECT COUNT(*) AS c FROM Ghe g JOIN PhongChieu pc ON g.MaPhong = pc.MaPhong WHERE {where_str}"
+    total_ghe = database.fetch_all(query_count, tuple(params_count))[0]['c']
+    total_pages = math.ceil(total_ghe / per_page) if total_ghe > 0 else 1
+
+    params_data = params_count.copy()
+    params_data.extend([per_page, offset])
+
+    query_data = f"""
         SELECT
             g.MaGhe,
             g.TenGhe,
             g.MaPhong,
             g.MaLoaiGhe,
             pc.TenPhong,
+            cr.TenCumRap,
             lg.TenLoai
         FROM Ghe g
         JOIN PhongChieu pc ON g.MaPhong = pc.MaPhong
+        JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
         JOIN LoaiGhe lg ON g.MaLoaiGhe = lg.MaLoaiGhe
+        WHERE {where_str}
         ORDER BY g.MaGhe ASC
-        """
-    )
+        LIMIT %s OFFSET %s
+    """
+    ds_ghe = database.fetch_all(query_data, tuple(params_data))
     ds_thong_ke_cum_rap = database.fetch_all(
         """
         SELECT
@@ -374,6 +353,10 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
         'ds_ghe': ds_ghe,
         'ghe_form_data': ghe_form_data or {},
         'ghe_editing_id': ghe_editing_id,
+        'loc_cum_rap': loc_cum_rap,
+        'loc_phong': loc_phong,
+        'ghe_page': page,
+        'ghe_total_pages': total_pages,
         'ds_thong_ke_cum_rap': ds_thong_ke_cum_rap,
     }
 
@@ -493,9 +476,8 @@ def xoa_cum_rap(ma_cum_rap):
 @rap_bp.route('/loaiphong/them', methods=['POST'])
 def them_loai_phong():
     ten_loai_phong = request.form.get('TenLoaiPhong', '').strip()
-    phu_thu = request.form.get('PhuThu', '').strip()
 
-    phu_thu_value, loi = _du_lieu_loai_phong_hop_le(ten_loai_phong, phu_thu)
+    loi = _du_lieu_loai_phong_hop_le(ten_loai_phong)
     if loi:
         flash(loi, 'error')
         return redirect(url_for('rap.index', section='loaiphong'))
@@ -503,9 +485,9 @@ def them_loai_phong():
     success = database.execute_query(
         """
         INSERT INTO LoaiPhong (TenLoaiPhong, PhuThu)
-        VALUES (%s, %s)
+        VALUES (%s, 0)
         """,
-        (ten_loai_phong, phu_thu_value),
+        (ten_loai_phong,),
     )
 
     if success:
@@ -520,9 +502,8 @@ def them_loai_phong():
 def sua_loai_phong(ma_loai_phong):
     if request.method == 'POST':
         ten_loai_phong = request.form.get('TenLoaiPhong', '').strip()
-        phu_thu = request.form.get('PhuThu', '').strip()
 
-        phu_thu_value, loi = _du_lieu_loai_phong_hop_le(ten_loai_phong, phu_thu, ma_loai_phong)
+        loi = _du_lieu_loai_phong_hop_le(ten_loai_phong, ma_loai_phong)
         if loi:
             flash(loi, 'error')
             return redirect(url_for('rap.sua_loai_phong', ma_loai_phong=ma_loai_phong))
@@ -530,10 +511,10 @@ def sua_loai_phong(ma_loai_phong):
         success = database.execute_query(
             """
             UPDATE LoaiPhong
-            SET TenLoaiPhong = %s, PhuThu = %s
+            SET TenLoaiPhong = %s
             WHERE MaLoaiPhong = %s
             """,
-            (ten_loai_phong, phu_thu_value, ma_loai_phong),
+            (ten_loai_phong, ma_loai_phong),
         )
 
         if success:
@@ -583,9 +564,8 @@ def xoa_loai_phong(ma_loai_phong):
 @rap_bp.route('/loaighe/them', methods=['POST'])
 def them_loai_ghe():
     ten_loai_ghe = request.form.get('TenLoai', '').strip()
-    phu_thu = request.form.get('PhuThu', '').strip()
 
-    phu_thu_value, loi = _du_lieu_loai_ghe_hop_le(ten_loai_ghe, phu_thu)
+    loi = _du_lieu_loai_ghe_hop_le(ten_loai_ghe)
     if loi:
         flash(loi, 'error')
         return redirect(url_for('rap.index', section='loaighe'))
@@ -593,9 +573,9 @@ def them_loai_ghe():
     success = database.execute_query(
         """
         INSERT INTO LoaiGhe (TenLoai, PhuThu)
-        VALUES (%s, %s)
+        VALUES (%s, 0)
         """,
-        (ten_loai_ghe, phu_thu_value),
+        (ten_loai_ghe,),
     )
 
     if success:
@@ -610,9 +590,8 @@ def them_loai_ghe():
 def sua_loai_ghe(ma_loai_ghe):
     if request.method == 'POST':
         ten_loai_ghe = request.form.get('TenLoai', '').strip()
-        phu_thu = request.form.get('PhuThu', '').strip()
 
-        phu_thu_value, loi = _du_lieu_loai_ghe_hop_le(ten_loai_ghe, phu_thu, ma_loai_ghe)
+        loi = _du_lieu_loai_ghe_hop_le(ten_loai_ghe, ma_loai_ghe)
         if loi:
             flash(loi, 'error')
             return redirect(url_for('rap.sua_loai_ghe', ma_loai_ghe=ma_loai_ghe))
@@ -620,10 +599,10 @@ def sua_loai_ghe(ma_loai_ghe):
         success = database.execute_query(
             """
             UPDATE LoaiGhe
-            SET TenLoai = %s, PhuThu = %s
+            SET TenLoai = %s
             WHERE MaLoaiGhe = %s
             """,
-            (ten_loai_ghe, phu_thu_value, ma_loai_ghe),
+            (ten_loai_ghe, ma_loai_ghe),
         )
 
         if success:
@@ -679,12 +658,11 @@ def them_phong_chieu():
     else:
         ma_cum_rap = session.get('ma_cum_rap')
 
-    ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
     so_hang = request.form.get('SoHang', '').strip()
     so_cot = request.form.get('SoCot', '').strip()
 
-    ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
-        ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot
+    ma_cum_rap_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
+        ten_phong, ma_cum_rap, so_hang, so_cot
     )
     if loi:
         flash(loi, 'error')
@@ -692,10 +670,10 @@ def them_phong_chieu():
 
     success = database.execute_query(
         """
-        INSERT INTO PhongChieu (TenPhong, MaCumRap, MaLoaiPhong, SoHang, SoCot, SucChua)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO PhongChieu (TenPhong, MaCumRap, SoHang, SoCot, SucChua)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (ten_phong, ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, so_hang_value * so_cot_value),
+        (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value, so_hang_value * so_cot_value),
     )
 
     if success:
@@ -715,27 +693,35 @@ def tao_phong_va_sinh_ghe():
     else:
         ma_cum_rap = session.get('ma_cum_rap')
 
-    ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
     so_hang = request.form.get('SoHang', '').strip()
     so_cot = request.form.get('SoCot', '').strip()
     ma_loai_ghe_mac_dinh = request.form.get('MaLoaiGheMacDinh', '').strip()
 
-    ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, ma_loai_ghe_value, loi = _du_lieu_tao_phong_va_ghe_hop_le(
-        ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_loai_ghe_mac_dinh
+    ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value, loi = _du_lieu_tao_phong_va_ghe_hop_le(
+        ten_phong, ma_cum_rap, so_hang, so_cot, ma_loai_ghe_mac_dinh
     )
     if loi:
         flash(loi, 'error')
         return redirect(url_for('rap.index', section='phongchieu'))
 
-    success = database.execute_query(
-        "CALL sp_TaoPhongVaGhe(%s, %s, %s, %s, %s, %s)",
-        (ten_phong, ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, ma_loai_ghe_value),
-    )
-
-    if success:
-        flash('Da tao phong chieu va sinh ghe tu dong.', 'success')
+    if ma_loai_ghe_value == 0:
+        success = database.execute_query(
+            "INSERT INTO PhongChieu (TenPhong, MaCumRap, SoHang, SoCot) VALUES (%s, %s, %s, %s)",
+            (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value),
+        )
+        if success:
+            flash('Da tao phong chieu rong. Ban co the tu ve so do ghe.', 'success')
+        else:
+            flash('Khong the tao phong chieu rong.', 'error')
     else:
-        flash('Khong the goi stored procedure sp_TaoPhongVaGhe.', 'error')
+        success = database.execute_query(
+            "CALL sp_TaoPhongVaGhe(%s, %s, %s, %s, %s)",
+            (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value),
+        )
+        if success:
+            flash('Da tao phong chieu va sinh ghe tu dong.', 'success')
+        else:
+            flash('Khong the goi stored procedure sp_TaoPhongVaGhe.', 'error')
 
     return redirect(url_for('rap.index', section='phongchieu'))
 
@@ -757,12 +743,11 @@ def sua_phong_chieu(ma_phong):
         else:
             ma_cum_rap = session.get('ma_cum_rap')
 
-        ma_loai_phong = request.form.get('MaLoaiPhong', '').strip()
         so_hang = request.form.get('SoHang', '').strip()
         so_cot = request.form.get('SoCot', '').strip()
 
-        ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
-            ten_phong, ma_cum_rap, ma_loai_phong, so_hang, so_cot, ma_phong
+        ma_cum_rap_value, so_hang_value, so_cot_value, loi = _du_lieu_phong_chieu_hop_le(
+            ten_phong, ma_cum_rap, so_hang, so_cot, ma_phong
         )
         if loi:
             flash(loi, 'error')
@@ -771,10 +756,10 @@ def sua_phong_chieu(ma_phong):
         success = database.execute_query(
             """
             UPDATE PhongChieu
-            SET TenPhong = %s, MaCumRap = %s, MaLoaiPhong = %s, SoHang = %s, SoCot = %s, SucChua = %s
+            SET TenPhong = %s, MaCumRap = %s, SoHang = %s, SoCot = %s, SucChua = %s
             WHERE MaPhong = %s
             """,
-            (ten_phong, ma_cum_rap_value, ma_loai_phong_value, so_hang_value, so_cot_value, so_hang_value * so_cot_value, ma_phong),
+            (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value, so_hang_value * so_cot_value, ma_phong),
         )
 
         if success:

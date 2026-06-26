@@ -296,7 +296,6 @@ CREATE TABLE PhongChieu (
     MaPhong INT AUTO_INCREMENT,
     TenPhong VARCHAR(50) NOT NULL,
     MaCumRap INT NOT NULL,
-    MaLoaiPhong INT NOT NULL,
     SoHang INT NOT NULL DEFAULT 10,
     SoCot INT NOT NULL DEFAULT 10,
     SucChua INT NOT NULL,
@@ -307,10 +306,6 @@ CREATE TABLE PhongChieu (
     CONSTRAINT FK_PhongChieu_CumRap
         FOREIGN KEY (MaCumRap) 
         REFERENCES CumRap(MaCumRap),
-
-    CONSTRAINT FK_PhongChieu_LoaiPhong
-        FOREIGN KEY (MaLoaiPhong) 
-        REFERENCES LoaiPhong(MaLoaiPhong),
 
     CONSTRAINT CK_PhongChieu_SucChua
         CHECK (SucChua > 0),
@@ -325,6 +320,8 @@ CREATE TABLE Ghe (
     TenGhe VARCHAR(10) NOT NULL,
     MaPhong INT NOT NULL,
     MaLoaiGhe INT NOT NULL,
+    Hang VARCHAR(5) NOT NULL,
+    Cot INT NOT NULL,
 
     CONSTRAINT PK_Ghe
         PRIMARY KEY (MaGhe),
@@ -393,7 +390,6 @@ DELIMITER $$
 CREATE PROCEDURE sp_TaoPhongVaGhe(
     IN p_TenPhong VARCHAR(50),
     IN p_MaCumRap INT,
-    IN p_MaLoaiPhong INT,
     IN p_SoHang INT,
     IN p_SoCot INT,
     IN p_MaLoaiGheMacDinh INT
@@ -459,8 +455,8 @@ BEGIN
         WHILE v_Cot <= p_SoCot DO
             SET v_TenGhe = CONCAT(v_KyTuHang, v_Cot);
 
-            INSERT INTO Ghe(TenGhe, MaPhong, MaLoaiGhe)
-            VALUES (v_TenGhe, v_MaPhongMoi, p_MaLoaiGheMacDinh);
+            INSERT INTO Ghe(TenGhe, MaPhong, MaLoaiGhe, Hang, Cot)
+            VALUES (v_TenGhe, v_MaPhongMoi, p_MaLoaiGheMacDinh, v_KyTuHang, v_Cot);
 
             SET v_Cot = v_Cot + 1;
         END WHILE;
@@ -500,12 +496,14 @@ CREATE TABLE SuatChieu (
     MaPhim INT NOT NULL,
     MaPhong INT NOT NULL,
     MaGiaVe INT NOT NULL,
+    MaLoaiPhong INT NOT NULL DEFAULT 1,
     GioBatDau DATETIME NOT NULL,
     GioKetThuc DATETIME NOT NULL,
 
     FOREIGN KEY (MaPhim) REFERENCES Phim(MaPhim),
     FOREIGN KEY (MaPhong) REFERENCES PhongChieu(MaPhong),
     FOREIGN KEY (MaGiaVe) REFERENCES GiaVe_CoBan(MaGiaVe),
+    FOREIGN KEY (MaLoaiPhong) REFERENCES LoaiPhong(MaLoaiPhong),
 
     CHECK (GioKetThuc > GioBatDau)
 );
@@ -518,6 +516,7 @@ SELECT
     pc.TenPhong,
     cr.MaCumRap,
     cr.TenCumRap,
+    lp.TenLoaiPhong as DinhDang,
     sc.GioBatDau,
     sc.GioKetThuc,
     gv.KhungGio,
@@ -528,6 +527,8 @@ JOIN Phim p
     ON sc.MaPhim = p.MaPhim
 JOIN PhongChieu pc 
     ON sc.MaPhong = pc.MaPhong
+JOIN LoaiPhong lp
+    ON sc.MaLoaiPhong = lp.MaLoaiPhong
 JOIN CumRap cr 
     ON pc.MaCumRap = cr.MaCumRap
 JOIN GiaVe_CoBan gv 
@@ -619,7 +620,17 @@ CREATE TABLE DichVu (
     MaDichVu INT AUTO_INCREMENT PRIMARY KEY,
     TenDichVu VARCHAR(100) NOT NULL,
     GiaBan INT NOT NULL,
+    SoLuongTon INT NOT NULL DEFAULT 0,
     CONSTRAINT CHK_GiaBan CHECK (GiaBan >= 0)
+);
+
+CREATE TABLE Voucher (
+    MaVoucher INT AUTO_INCREMENT PRIMARY KEY,
+    MaCode VARCHAR(20) NOT NULL UNIQUE,
+    PhanTramGiam INT NOT NULL CHECK (PhanTramGiam > 0 AND PhanTramGiam <= 100),
+    GiamToiDa INT NOT NULL CHECK (GiamToiDa > 0),
+    NgayHetHan DATETIME NOT NULL,
+    SoLuong INT NOT NULL DEFAULT 0 CHECK (SoLuong >= 0)
 );
 
 CREATE TABLE KhachHang (
@@ -731,7 +742,7 @@ CREATE TABLE CHITIET_VE (
 
 CREATE TABLE CHITIET_DICHVU (
     MaHoaDon VARCHAR(10),
-    MaDichVu VARCHAR(10),
+    MaDichVu INT,
     SoLuong INT,
     ThanhTien DECIMAL(18,2)
 );
@@ -846,3 +857,130 @@ BEGIN
 END$$
 
 DELIMITER ;
+DELIMITER $ $
+
+-- ==============================================
+-- PHẦN CỦA THÀNH VIÊN 4: KHÁCH HÀNG & F&B
+-- ==============================================
+
+-- 1. TRIGGER: Tự động cập nhật hạng khách hàng khi điểm tích lũy thay đổi
+CREATE TRIGGER trg_CapNhatHangKhach
+BEFORE UPDATE ON KhachHang
+FOR EACH ROW
+BEGIN
+    DECLARE v_MaHang INT;
+    
+    -- Tìm mã hạng cao nhất mà điểm tích lũy mới đáp ứng được
+    SELECT MaHang INTO v_MaHang
+    FROM HangThanhVien
+    WHERE DiemYeuCau <= NEW.DiemTichLuy
+    ORDER BY DiemYeuCau DESC
+    LIMIT 1;
+    
+    IF v_MaHang IS NOT NULL THEN
+        SET NEW.MaHang = v_MaHang;
+    END IF;
+END$ $
+
+-- 2. TRIGGER: Trừ số lượng tồn kho bắp nước khi bán (Ngăn xuất âm)
+CREATE TRIGGER trg_XuatKhoDichVu
+BEFORE INSERT ON CHITIET_DICHVU
+FOR EACH ROW
+BEGIN
+    DECLARE v_TonKho INT;
+    
+    -- Lấy số lượng tồn hiện tại
+    SELECT SoLuongTon INTO v_TonKho
+    FROM DichVu
+    WHERE MaDichVu = NEW.MaDichVu;
+    
+    IF v_TonKho < NEW.SoLuong THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lỗi: Tồn kho bắp nước không đủ để xuất!';
+    ELSE
+        UPDATE DichVu
+        SET SoLuongTon = SoLuongTon - NEW.SoLuong
+        WHERE MaDichVu = NEW.MaDichVu;
+    END IF;
+END$ $
+
+-- 3. PROCEDURE: Kiểm tra và áp dụng mã Voucher
+CREATE PROCEDURE sp_KiemTraVoucher(
+    IN p_MaCode VARCHAR(20),
+    IN p_TongTien INT,
+    OUT p_SoTienGiam INT,
+    OUT p_TrangThai VARCHAR(50)
+)
+BEGIN
+    DECLARE v_PhanTram INT;
+    DECLARE v_GiamToiDa INT;
+    DECLARE v_NgayHetHan DATETIME;
+    DECLARE v_SoLuong INT;
+    
+    SELECT PhanTramGiam, GiamToiDa, NgayHetHan, SoLuong
+    INTO v_PhanTram, v_GiamToiDa, v_NgayHetHan, v_SoLuong
+    FROM Voucher
+    WHERE MaCode = p_MaCode;
+    
+    IF v_PhanTram IS NULL THEN
+        SET p_TrangThai = 'Mã không tồn tại';
+        SET p_SoTienGiam = 0;
+    ELSEIF v_NgayHetHan < NOW() THEN
+        SET p_TrangThai = 'Mã đã hết hạn';
+        SET p_SoTienGiam = 0;
+    ELSEIF v_SoLuong <= 0 THEN
+        SET p_TrangThai = 'Mã đã hết lượt sử dụng';
+        SET p_SoTienGiam = 0;
+    ELSE
+        -- Tính toán số tiền giảm
+        SET p_SoTienGiam = (p_TongTien * v_PhanTram) / 100;
+        
+        IF p_SoTienGiam > v_GiamToiDa THEN
+            SET p_SoTienGiam = v_GiamToiDa;
+        END IF;
+        
+        -- Cập nhật lượt dùng
+        UPDATE Voucher
+        SET SoLuong = SoLuong - 1
+        WHERE MaCode = p_MaCode;
+        
+        SET p_TrangThai = 'Áp dụng thành công';
+    END IF;
+END$ $
+
+DELIMITER ;
+-- Dữ liệu mẫu (Mock Data)
+INSERT IGNORE INTO CumRap (TenCumRap, DiaChi, Hotline) VALUES 
+('CGV Vincom Center', '72 Le Thanh Ton, Q1', '190015670'),
+('Lotte Cinema Cantavil', '1 Song Hanh, Q2', '190015680');
+
+INSERT IGNORE INTO LoaiPhong (TenLoaiPhong, PhuThu) VALUES 
+('2D', 0),
+('3D', 30000),
+('IMAX', 50000);
+
+INSERT IGNORE INTO LoaiGhe (TenLoai, PhuThu) VALUES 
+('Thuong', 0),
+('VIP', 20000),
+('Sweetbox', 50000);
+
+-- Tạo Phòng chiếu và Ghế (Sử dụng Stored Procedure sẽ tự sinh ghế A1, A2...)
+CALL sp_TaoPhongVaGhe('P01', 1, 10, 10, 1);
+CALL sp_TaoPhongVaGhe('P02', 1, 12, 12, 1);
+CALL sp_TaoPhongVaGhe('P01', 2, 8, 10, 1);
+CALL sp_TaoPhongVaGhe('P02', 2, 8, 10, 1);
+
+INSERT IGNORE INTO Phim (TenPhim, ThoiLuong, NgayKhoiChieu) VALUES 
+('Lat Mat 7: Mot Dieu Uoc', 120, '2024-04-26'),
+('Mai', 131, '2024-02-10'),
+('Godzilla x Kong', 115, '2024-03-29');
+
+INSERT IGNORE INTO GiaVe_CoBan (KhungGio, LoaiNgay, GiaCoBan) VALUES 
+('08:00 - 12:00', 'Thuong', 75000),
+('12:00 - 17:00', 'Thuong', 85000),
+('17:00 - 23:00', 'Thuong', 100000),
+('08:00 - 23:00', 'Cuoi Tuan', 120000);
+
+INSERT INTO SuatChieu (MaPhim, MaPhong, MaGiaVe, MaLoaiPhong, GioBatDau, GioKetThuc) VALUES 
+(1, 1, 1, 1, CONCAT(CURDATE(), ' 08:30:00'), CONCAT(CURDATE(), ' 10:30:00')),
+(2, 2, 3, 2, CONCAT(CURDATE(), ' 19:00:00'), CONCAT(CURDATE(), ' 21:11:00'));

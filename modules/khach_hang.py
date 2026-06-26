@@ -3,25 +3,19 @@ import database
 
 khach_hang_bp = Blueprint('khach_hang', __name__)
 
+@khach_hang_bp.before_request
+def check_auth():
+    from flask import session, redirect, url_for, flash
+    if not session.get('user_id') or session.get('role') != 'nhanvien':
+        return redirect(url_for('auth.login'))
+
 @khach_hang_bp.route('/')
 def index():
     # Lấy danh sách VIP
     query_vip = "SELECT * FROM View_DanhSachKhachHangVIP"
     ds_vip = database.fetch_all(query_vip)
     
-    # Lấy danh sách Bắp Nước (Dịch Vụ)
-    query_dv = "SELECT MaDichVu, TenDichVu, GiaBan FROM DichVu"
-    ds_dv = database.fetch_all(query_dv)
-    
-    # Lấy danh sách Nhân viên
-    query_nv = """
-        SELECT NV.MaNV, NV.HoTen, NV.ChucVu, CR.TenCumRap
-        FROM NhanVien NV
-        JOIN CumRap CR ON NV.MaCumRap = CR.MaCumRap
-    """
-    ds_nv = database.fetch_all(query_nv)
-    
-    return render_template('khach_hang/index.html', title="Khách Hàng & Dịch Vụ", ds_vip=ds_vip, ds_dv=ds_dv, ds_nv=ds_nv)
+    return render_template('khach_hang/index.html', title="Khách Hàng", ds_vip=ds_vip)
 
 @khach_hang_bp.route('/tim-kiem', methods=['GET'])
 def tim_khach_hang():

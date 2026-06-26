@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card" style="max-width: 450px; margin: 2rem auto; text-align: center;">
-    <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Đăng Nhập</h2>
-    <p style="color: var(--text-muted); margin-bottom: 2rem;">Vui lòng nhập thông tin để truy cập hệ thống</p>
+<div class="card inline-style-59" >
+    <h2 class="inline-style-60" >Đăng Nhập</h2>
+    <p class="inline-style-61" >Vui lòng nhập thông tin để truy cập hệ thống</p>
     
-    <form action="/auth/login" method="POST" style="text-align: left;">
+    <form class="inline-style-62" action="/auth/login" method="POST" >
         <div class="form-group">
             <label>Số điện thoại (Khách) hoặc Tên đăng nhập (NV)</label>
             <input type="text" name="username" placeholder="Ví dụ: 0901234567 hoặc admin" required>
@@ -16,12 +16,12 @@
             <input type="password" name="password" placeholder="Nhập mật khẩu (mặc định 123456)" required>
         </div>
         
-        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; font-size: 1.1rem;">Đăng Nhập</button>
+        <button type="submit" class="btn inline-style-63" >Đăng Nhập</button>
     </form>
     
-    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-        <p style="color: var(--text-muted);">Khách hàng chưa có tài khoản?</p>
-        <a href="/auth/register" class="btn" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); margin-top: 0.5rem; width: 100%;">Tạo Tài Khoản Mới</a>
+    <div class="inline-style-64" >
+        <p class="inline-style-65" >Khách hàng chưa có tài khoản?</p>
+        <a href="/auth/register" class="btn inline-style-66" >Tạo Tài Khoản Mới</a>
     </div>
 </div>
 {% endblock %}

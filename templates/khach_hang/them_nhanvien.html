@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card" style="max-width: 600px; margin: 0 auto;">
-    <h2 style="margin-bottom: 1.5rem; color: #8b5cf6;">Khai Báo Nhân Sự Mới</h2>
+<div class="card inline-style-115" >
+    <h2 class="inline-style-124" >Khai Báo Nhân Sự Mới</h2>
     
     <form action="/khachhang/nhanvien/them" method="POST">
         <div class="form-group">
@@ -26,12 +26,12 @@
                 <option value="{{ rap.MaCumRap }}">{{ rap.TenCumRap }}</option>
                 {% endfor %}
             </select>
-            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">(Danh sách rạp được lấy từ Phân hệ Cơ sở vật chất của Thành viên 2)</small>
+            <small class="inline-style-125" >(Danh sách rạp được lấy từ Phân hệ Cơ sở vật chất của Thành viên 2)</small>
         </div>
 
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn" style="flex: 1; background: #8b5cf6;">Lưu Nhân Viên</button>
-            <a href="/khachhang" class="btn" style="background: #4b5563; text-align: center;">Hủy Bỏ</a>
+        <div class="inline-style-118" >
+            <button type="submit" class="btn inline-style-126" >Lưu Nhân Viên</button>
+            <a href="/khachhang" class="btn inline-style-120" >Hủy Bỏ</a>
         </div>
     </form>
 </div>

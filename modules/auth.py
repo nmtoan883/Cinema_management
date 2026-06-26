@@ -19,7 +19,7 @@ def login():
             session['user_name'] = khach_hang['HoTen']
             session['role'] = 'khach'
             flash('Đăng nhập thành công! Chào mừng Khách Hàng.', 'success')
-            return redirect(url_for('dat_ve.chon_phim')) # Chuyển hướng tới Đặt Vé
+            return redirect(url_for('dat_ve.index')) # Chuyển hướng tới Đặt Vé
             
         # 2. Nếu không phải Khách Hàng, kiểm tra Nhân Viên
         query_nv = "SELECT * FROM NhanVien WHERE TenDangNhap = %s AND MatKhau = %s"
@@ -74,3 +74,41 @@ def logout():
     session.clear()
     flash('Đã đăng xuất thành công!', 'success')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/profile')
+def profile():
+    if not session.get('user_id'):
+        return redirect(url_for('auth.login'))
+        
+    user_id = session.get('user_id')
+    role = session.get('role')
+    
+    if role == 'khach':
+        user = database.fetch_all("SELECT k.*, h.TenHang, h.UuDai FROM KhachHang k LEFT JOIN HangThanhVien h ON k.MaHang = h.MaHang WHERE k.MaKH = %s", (user_id,))
+        history = database.fetch_all("""
+            SELECT hd.MaHoaDon, hd.NgayLap, hd.TongTien,
+                   p.TenPhim, pc.TenPhong, sc.GioBatDau,
+                   GROUP_CONCAT(g.TenGhe SEPARATOR ', ') as DanhSachGhe
+            FROM hoadon hd
+            JOIN chitiet_ve cv ON hd.MaHoaDon = cv.MaHoaDon
+            JOIN suatchieu sc ON cv.MaSuatChieu = sc.MaSuatChieu
+            JOIN phim p ON sc.MaPhim = p.MaPhim
+            JOIN phongchieu pc ON sc.MaPhong = pc.MaPhong
+            JOIN ghe g ON cv.MaGhe = g.MaGhe
+            WHERE hd.MaKH = %s
+            GROUP BY hd.MaHoaDon, hd.NgayLap, hd.TongTien, p.TenPhim, pc.TenPhong, sc.GioBatDau
+            ORDER BY hd.NgayLap DESC
+        """, (user_id,))
+        return render_template('auth/profile_khach.html', user=user[0] if user else None, history=history)
+        
+    elif role == 'nhanvien':
+        user = database.fetch_all("""
+            SELECT nv.*, c.TenCumRap, c.DiaChi
+            FROM NhanVien nv 
+            LEFT JOIN CumRap c ON nv.MaCumRap = c.MaCumRap 
+            WHERE nv.MaNV = %s
+        """, (user_id,))
+        return render_template('auth/profile_nhanvien.html', user=user[0] if user else None)
+    
+    return redirect('/')
