@@ -214,13 +214,23 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
                          loai_ghe_form_data=None, loai_ghe_editing_id=None,
                          phong_chieu_form_data=None, phong_chieu_editing_id=None,
                          ghe_form_data=None, ghe_editing_id=None):
-    ds_cum_rap = database.fetch_all(
-        """
-        SELECT MaCumRap, TenCumRap, DiaChi, Hotline
-        FROM CumRap
-        ORDER BY MaCumRap ASC
-        """
-    )
+    if session.get('chuc_vu') == 'Admin':
+        ds_cum_rap = database.fetch_all(
+            """
+            SELECT MaCumRap, TenCumRap, DiaChi, Hotline
+            FROM CumRap
+            ORDER BY MaCumRap ASC
+            """
+        )
+    else:
+        ds_cum_rap = database.fetch_all(
+            """
+            SELECT MaCumRap, TenCumRap, DiaChi, Hotline
+            FROM CumRap
+            WHERE MaCumRap = %s
+            ORDER BY MaCumRap ASC
+            """, (session.get('ma_cum_rap'),)
+        )
     ds_loai_phong = database.fetch_all(
         """
         SELECT MaLoaiPhong, TenLoaiPhong, PhuThu
@@ -322,19 +332,35 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
         LIMIT %s OFFSET %s
     """
     ds_ghe = database.fetch_all(query_data, tuple(params_data))
-    ds_thong_ke_cum_rap = database.fetch_all(
-        """
-        SELECT
-            MaCumRap,
-            TenCumRap,
-            DiaChi,
-            Hotline,
-            TongSoPhong,
-            TongSucChua
-        FROM v_ThongKePhongTheoCumRap
-        ORDER BY MaCumRap ASC
-        """
-    )
+    if session.get('chuc_vu') == 'Admin':
+        ds_thong_ke_cum_rap = database.fetch_all(
+            """
+            SELECT
+                MaCumRap,
+                TenCumRap,
+                DiaChi,
+                Hotline,
+                TongSoPhong,
+                TongSucChua
+            FROM v_ThongKePhongTheoCumRap
+            ORDER BY MaCumRap ASC
+            """
+        )
+    else:
+        ds_thong_ke_cum_rap = database.fetch_all(
+            """
+            SELECT
+                MaCumRap,
+                TenCumRap,
+                DiaChi,
+                Hotline,
+                TongSoPhong,
+                TongSucChua
+            FROM v_ThongKePhongTheoCumRap
+            WHERE MaCumRap = %s
+            ORDER BY MaCumRap ASC
+            """, (session.get('ma_cum_rap'),)
+        )
     return {
         'title': 'Quan Ly Rap',
         'active_section': active_section,
@@ -818,6 +844,12 @@ def them_ghe():
     ma_phong = request.form.get('MaPhong', '').strip()
     ma_loai_ghe = request.form.get('MaLoaiGhe', '').strip()
 
+    if session.get('chuc_vu') != 'Admin':
+        pc = database.fetch_all("SELECT MaCumRap FROM PhongChieu WHERE MaPhong = %s", (ma_phong,))
+        if not pc or pc[0]['MaCumRap'] != session.get('ma_cum_rap'):
+            flash('Bạn không có quyền thêm ghế cho phòng chiếu của rạp khác', 'error')
+            return redirect(url_for('rap.index', section='ghe'))
+
     ma_phong_value, ma_loai_ghe_value, loi = _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe)
     if loi:
         flash(loi, 'error')
@@ -841,10 +873,26 @@ def them_ghe():
 
 @rap_bp.route('/ghe/sua/<int:ma_ghe>', methods=['GET', 'POST'])
 def sua_ghe(ma_ghe):
+    if session.get('chuc_vu') != 'Admin':
+        ghe_cur = database.fetch_all("SELECT MaPhong FROM Ghe WHERE MaGhe = %s", (ma_ghe,))
+        if not ghe_cur:
+            flash('Không tìm thấy ghế', 'error')
+            return redirect(url_for('rap.index', section='ghe'))
+        pc_cur = database.fetch_all("SELECT MaCumRap FROM PhongChieu WHERE MaPhong = %s", (ghe_cur[0]['MaPhong'],))
+        if not pc_cur or pc_cur[0]['MaCumRap'] != session.get('ma_cum_rap'):
+            flash('Bạn không có quyền sửa ghế của rạp khác', 'error')
+            return redirect(url_for('rap.index', section='ghe'))
+
     if request.method == 'POST':
         ten_ghe = request.form.get('TenGhe', '').strip()
         ma_phong = request.form.get('MaPhong', '').strip()
         ma_loai_ghe = request.form.get('MaLoaiGhe', '').strip()
+
+        if session.get('chuc_vu') != 'Admin':
+            pc_target = database.fetch_all("SELECT MaCumRap FROM PhongChieu WHERE MaPhong = %s", (ma_phong,))
+            if not pc_target or pc_target[0]['MaCumRap'] != session.get('ma_cum_rap'):
+                flash('Bạn không có quyền chuyển ghế sang rạp khác', 'error')
+                return redirect(url_for('rap.index', section='ghe'))
 
         ma_phong_value, ma_loai_ghe_value, loi = _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe, ma_ghe)
         if loi:
@@ -891,6 +939,16 @@ def sua_ghe(ma_ghe):
 
 @rap_bp.route('/ghe/xoa/<int:ma_ghe>', methods=['POST'])
 def xoa_ghe(ma_ghe):
+    if session.get('chuc_vu') != 'Admin':
+        ghe_cur = database.fetch_all("SELECT MaPhong FROM Ghe WHERE MaGhe = %s", (ma_ghe,))
+        if not ghe_cur:
+            flash('Không tìm thấy ghế', 'error')
+            return redirect(url_for('rap.index', section='ghe'))
+        pc_cur = database.fetch_all("SELECT MaCumRap FROM PhongChieu WHERE MaPhong = %s", (ghe_cur[0]['MaPhong'],))
+        if not pc_cur or pc_cur[0]['MaCumRap'] != session.get('ma_cum_rap'):
+            flash('Bạn không có quyền xóa ghế của rạp khác', 'error')
+            return redirect(url_for('rap.index', section='ghe'))
+
     success = database.execute_query(
         "DELETE FROM Ghe WHERE MaGhe = %s",
         (ma_ghe,),

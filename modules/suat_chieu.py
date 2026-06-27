@@ -18,13 +18,11 @@ def index():
         query_homnay = "SELECT * FROM v_LichChieuHomNay ORDER BY GioBatDau"
         ds_homnay = database.fetch_all(query_homnay)
     else:
-        # Lọc Suất chiếu hôm nay theo Cụm Rạp (Lưu ý: v_LichChieuHomNay cần join với PhongChieu)
         query_homnay = """
-            SELECT sc.* 
-            FROM v_LichChieuHomNay sc
-            JOIN PhongChieu pc ON sc.MaPhong = pc.MaPhong
-            WHERE pc.MaCumRap = %s
-            ORDER BY sc.GioBatDau
+            SELECT * 
+            FROM v_LichChieuHomNay
+            WHERE MaCumRap = %s
+            ORDER BY GioBatDau
         """
         ds_homnay = database.fetch_all(query_homnay, (session.get('ma_cum_rap'),))
 
@@ -103,6 +101,17 @@ def xoa_suat_chieu(id):
         flash('Bạn không có quyền xóa suất chiếu', 'error')
         return redirect('/suatchieu')
         
+    if session.get('chuc_vu') != 'Admin':
+        sc = database.fetch_all("""
+            SELECT pc.MaCumRap 
+            FROM SuatChieu sc 
+            JOIN PhongChieu pc ON sc.MaPhong = pc.MaPhong 
+            WHERE sc.MaSuatChieu = %s
+        """, (id,))
+        if not sc or sc[0]['MaCumRap'] != session.get('ma_cum_rap'):
+            flash('Bạn không có quyền xóa suất chiếu của rạp khác', 'error')
+            return redirect('/suatchieu')
+
     query = "DELETE FROM SuatChieu WHERE MaSuatChieu = %s"
     try:
         success = database.execute_query(query, (id,))

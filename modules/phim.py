@@ -214,10 +214,12 @@ def them_the_loai():
 
 @phim_bp.route('/xoa/<int:id>', methods=['POST'])
 def xoa_phim(id):
-    database.execute_query(
-        "DELETE FROM PHIM WHERE MaPhim = %s",
-        (id,)
-    )
+    user_name = session.get('user_name', 'Unknown')
+    queries = [
+        ("SET @changed_by = %s", (user_name,)),
+        ("DELETE FROM PHIM WHERE MaPhim = %s", (id,))
+    ]
+    database.execute_transaction(queries)
     return redirect(url_for('phim.index'))
 
 @phim_bp.route('/gioi-han')
@@ -297,7 +299,12 @@ def sua_phim(id):
         SET TenPhim = %s, ThoiLuong = %s, NgayKhoiChieu = %s, MaGioiHan = %s, Poster = %s, MoTa = %s, TrailerURL = %s, MaDaoDien = %s
         WHERE MaPhim = %s
         """
-        database.execute_query(sql_phim, (ten_phim, thoi_luong, ngay_khoi_chieu, ma_gioi_han, poster, mo_ta, trailer, ma_dao_dien, id))
+        user_name = session.get('user_name', 'Unknown')
+        queries = [
+            ("SET @changed_by = %s", (user_name,)),
+            (sql_phim, (ten_phim, thoi_luong, ngay_khoi_chieu, ma_gioi_han, poster, mo_ta, trailer, ma_dao_dien, id))
+        ]
+        database.execute_transaction(queries)
 
         if ma_the_loai:
             database.execute_query("DELETE FROM PHIM_THELOAI WHERE MaPhim = %s", (id,))
