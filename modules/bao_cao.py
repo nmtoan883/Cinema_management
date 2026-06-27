@@ -48,7 +48,7 @@ def lay_du_lieu_bao_cao(from_date, to_date, group_by):
     if group_by == 'cumrap':
         query = """
             SELECT
-                cr.TenCumRap AS Nhom,
+                COALESCE(cr.TenCumRap, 'TỔNG CỘNG') AS Nhom,
                 COUNT(DISTINCT cv.MaVe) AS SoVe,
                 ROUND(SUM(COALESCE(cv.GiaMua, CAST(fn_TinhGiaVeCuoiCung(CAST(cv.MaSuatChieu AS UNSIGNED)) AS DECIMAL(18,2)))), 2) AS DoanhThu
             FROM CHITIET_VE cv
@@ -57,8 +57,8 @@ def lay_du_lieu_bao_cao(from_date, to_date, group_by):
             JOIN PhongChieu pc ON sc.MaPhong = pc.MaPhong
             JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
             WHERE hd.NgayLap >= %s AND hd.NgayLap < %s
-            GROUP BY cr.MaCumRap, cr.TenCumRap
-            ORDER BY DoanhThu DESC, SoVe DESC
+            GROUP BY cr.MaCumRap, cr.TenCumRap WITH ROLLUP
+            ORDER BY cr.MaCumRap IS NULL, DoanhThu DESC, SoVe DESC
         """
         params = (start_dt, end_dt)
     elif group_by == 'thoigian':

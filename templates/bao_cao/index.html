@@ -42,7 +42,7 @@
         </thead>
         <tbody>
             {% for row in report_data %}
-            <tr>
+            <tr {% if row.Nhom == 'TỔNG CỘNG' %}style="font-weight: bold; background: #fff3cd;"{% endif %}>
                 <td>{{ row.Nhom }}</td>
                 <td>{{ row.SoVe }}</td>
                 <td>{{ "{:,.0f}".format(row.DoanhThu) }}đ</td>
