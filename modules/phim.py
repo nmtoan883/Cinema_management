@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from flask import Blueprint, render_template, request, redirect, url_prefix
-=======
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
->>>>>>> c8957c6baf28c93dc293f9670386646fe828d06b
 import database
 
 phim_bp = Blueprint(

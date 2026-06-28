@@ -49,6 +49,21 @@
 
     <!-- TAB 2: Tất Cả Lịch Chiếu -->
     <div id="tatca" class="tab-content">
+        <!-- Tìm kiếm nhanh Full-Text Search (theo Khung giờ hoặc Tên rạp) -->
+        <div style="padding: 15px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+            <form method="GET" action="/suatchieu/" class="form-inline" style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                <div style="flex: 1; display: flex; gap: 5px; align-items: center;">
+                    <span style="color: #bbb; padding: 0 10px;"><i class="fas fa-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Tìm kiếm nhanh suất chiếu theo khung giờ (vd: 12:00) hoặc tên rạp (vd: Lotte)..." value="{{ q }}" style="flex: 1; background: rgba(0, 0, 0, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 4px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border-radius: 4px; background-color: #007bff; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;"><i class="fas fa-search"></i> Tìm kiếm FTS</button>
+                {% if q %}
+                <a href="/suatchieu/" class="btn btn-secondary" style="padding: 10px 20px; border-radius: 4px; background-color: #6c757d; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fas fa-undo"></i> Xóa lọc</a>
+                {% endif %}
+            </form>
+            <small style="color: #bbb; margin-top: 5px; display: block;">* Tìm kiếm thông minh bằng Full-Text Search MySQL trên Cột Tên rạp và Khung giờ chiếu.</small>
+        </div>
+
         {% if ds_tatca %}
         
         <div class="extracted-style-1062">
@@ -191,6 +206,12 @@
         let hash = window.location.hash.substring(1);
         let tab = document.querySelector('.tab-link[data-tab="' + hash + '"]');
         if(tab) tab.click();
+    } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('q')) {
+            let tab = document.querySelector('.tab-link[data-tab="tatca"]');
+            if(tab) tab.click();
+        }
     }
 
     

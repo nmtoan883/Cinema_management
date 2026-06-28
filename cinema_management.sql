@@ -255,7 +255,9 @@ CREATE TABLE CumRap (
         UNIQUE (TenCumRap, DiaChi),
 
     CONSTRAINT CK_CumRap_Hotline
-        CHECK (CHAR_LENGTH(Hotline) BETWEEN 9 AND 15)
+        CHECK (CHAR_LENGTH(Hotline) BETWEEN 9 AND 15),
+
+    FULLTEXT INDEX ft_TenCumRap (TenCumRap)
 );
 
 -- LoaiPhong
@@ -479,7 +481,8 @@ CREATE TABLE GiaVe_CoBan (
     KhungGio VARCHAR(50) NOT NULL,
     LoaiNgay VARCHAR(50) NOT NULL,
     GiaCoBan DECIMAL(18,2) NOT NULL,
-    CHECK (GiaCoBan >= 0)
+    CHECK (GiaCoBan >= 0),
+    FULLTEXT INDEX ft_KhungGio (KhungGio)
 );
 
 CREATE TABLE NgayLe (
@@ -535,6 +538,32 @@ JOIN GiaVe_CoBan gv
     ON sc.MaGiaVe = gv.MaGiaVe
 WHERE DATE(sc.GioBatDau) = CURDATE();
 
+-- VIEW: Suat chieu chi tiet day du
+CREATE VIEW v_SuatChieuChiTiet AS
+SELECT
+    sc.MaSuatChieu,
+    sc.MaPhim,
+    p.TenPhim,
+    sc.MaPhong,
+    pc.TenPhong,
+    pc.MaCumRap,
+    cr.TenCumRap,
+    sc.MaLoaiPhong,
+    lp.TenLoaiPhong AS DinhDang,
+    sc.GioBatDau,
+    sc.GioKetThuc,
+    sc.MaGiaVe,
+    gv.KhungGio,
+    gv.LoaiNgay,
+    gv.GiaCoBan,
+    fn_TinhGiaVeCuoiCung(sc.MaSuatChieu) AS GiaCuoiCung
+FROM SuatChieu sc
+JOIN Phim p ON sc.MaPhim = p.MaPhim
+JOIN PhongChieu pc ON sc.MaPhong = pc.MaPhong
+JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
+JOIN LoaiPhong lp ON sc.MaLoaiPhong = lp.MaLoaiPhong
+JOIN GiaVe_CoBan gv ON sc.MaGiaVe = gv.MaGiaVe;
+
 DELIMITER $$
 
 -- TRIGGER: Chong trung suat chieu khi them
@@ -542,6 +571,9 @@ CREATE TRIGGER trg_KiemTraTrungSuatChieu_Insert
 BEFORE INSERT ON SuatChieu
 FOR EACH ROW
 BEGIN
+    DECLARE v_ThoiLuong INT;
+    
+    -- Kiểm tra trùng lịch
     IF EXISTS (
         SELECT 1
         FROM SuatChieu
@@ -552,6 +584,13 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Phong chieu da co suat chieu trung gio.';
     END IF;
+
+    -- Kiểm tra thời lượng suất chiếu phải đủ cho thời lượng phim
+    SELECT ThoiLuong INTO v_ThoiLuong FROM PHIM WHERE MaPhim = NEW.MaPhim;
+    IF TIMESTAMPDIFF(MINUTE, NEW.GioBatDau, NEW.GioKetThuc) < v_ThoiLuong THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Thoi gian suat chieu khong du cho thoi luong cua phim.';
+    END IF;
 END$$
 
 -- TRIGGER: Chong trung suat chieu khi sua
@@ -559,6 +598,9 @@ CREATE TRIGGER trg_KiemTraTrungSuatChieu_Update
 BEFORE UPDATE ON SuatChieu
 FOR EACH ROW
 BEGIN
+    DECLARE v_ThoiLuong INT;
+    
+    -- Kiểm tra trùng lịch
     IF EXISTS (
         SELECT 1
         FROM SuatChieu
@@ -569,6 +611,13 @@ BEGIN
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Phong chieu da co suat chieu trung gio.';
+    END IF;
+
+    -- Kiểm tra thời lượng suất chiếu phải đủ cho thời lượng phim
+    SELECT ThoiLuong INTO v_ThoiLuong FROM PHIM WHERE MaPhim = NEW.MaPhim;
+    IF TIMESTAMPDIFF(MINUTE, NEW.GioBatDau, NEW.GioKetThuc) < v_ThoiLuong THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Thoi gian suat chieu khong du cho thoi luong cua phim.';
     END IF;
 END$$
 

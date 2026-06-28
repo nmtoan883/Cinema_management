@@ -29,36 +29,46 @@ def index():
         ds_homnay = database.fetch_all(query_homnay, (session.get('ma_cum_rap'),))
 
     
-    # Lấy TẤT CẢ suất chiếu để quản lý tổng quan
-    if session.get('chuc_vu') == 'Admin':
-        query_tat_ca = """
-            SELECT sc.MaSuatChieu, p.TenPhim, pc.TenPhong, lp.TenLoaiPhong as DinhDang, sc.GioBatDau, sc.GioKetThuc, 
-                   gv.KhungGio, gv.LoaiNgay, gv.GiaCoBan,
-                   fn_TinhGiaVeCuoiCung(sc.MaSuatChieu) AS GiaCuoiCung
-            FROM SuatChieu sc
-            JOIN Phim p ON sc.MaPhim = p.MaPhim
-            JOIN PhongChieu pc ON sc.MaPhong = pc.MaPhong
-            JOIN LoaiPhong lp ON sc.MaLoaiPhong = lp.MaLoaiPhong
-            JOIN GiaVe_CoBan gv ON sc.MaGiaVe = gv.MaGiaVe
-            ORDER BY sc.GioBatDau DESC
-        """
-        ds_tatca = database.fetch_all(query_tat_ca)
-        ds_phong = database.fetch_all("SELECT MaPhong, TenPhong FROM PhongChieu")
+    # Lấy TẤT CẢ suất chiếu để quản lý tổng quan (Hỗ trợ Full-Text Search)
+    q = request.args.get('q', '').strip()
+    
+    if q:
+        # Chuẩn bị truy vấn FTS bằng Boolean Mode (nhập từ nào cũng ghép thêm dấu + và * để tìm kiếm linh hoạt)
+        fts_q = " ".join([f"+{w}*" for w in q.split() if w])
+        like_q = f"%{q}%"
+        
+        if session.get('chuc_vu') == 'Admin':
+            query_tat_ca = """
+                SELECT * FROM v_SuatChieuChiTiet
+                WHERE MATCH(TenCumRap) AGAINST (%s IN BOOLEAN MODE)
+                   OR MATCH(KhungGio) AGAINST (%s IN BOOLEAN MODE)
+                   OR TenCumRap LIKE %s
+                   OR KhungGio LIKE %s
+                ORDER BY GioBatDau DESC
+            """
+            ds_tatca = database.fetch_all(query_tat_ca, (fts_q, fts_q, like_q, like_q))
+            ds_phong = database.fetch_all("SELECT MaPhong, TenPhong FROM PhongChieu")
+        else:
+            query_tat_ca = """
+                SELECT * FROM v_SuatChieuChiTiet
+                WHERE (MATCH(TenCumRap) AGAINST (%s IN BOOLEAN MODE)
+                   OR MATCH(KhungGio) AGAINST (%s IN BOOLEAN MODE)
+                   OR TenCumRap LIKE %s
+                   OR KhungGio LIKE %s)
+                  AND MaCumRap = %s
+                ORDER BY GioBatDau DESC
+            """
+            ds_tatca = database.fetch_all(query_tat_ca, (fts_q, fts_q, like_q, like_q, session.get('ma_cum_rap')))
+            ds_phong = database.fetch_all("SELECT MaPhong, TenPhong FROM PhongChieu WHERE MaCumRap = %s", (session.get('ma_cum_rap'),))
     else:
-        query_tat_ca = """
-            SELECT sc.MaSuatChieu, p.TenPhim, pc.TenPhong, lp.TenLoaiPhong as DinhDang, sc.GioBatDau, sc.GioKetThuc, 
-                   gv.KhungGio, gv.LoaiNgay, gv.GiaCoBan,
-                   fn_TinhGiaVeCuoiCung(sc.MaSuatChieu) AS GiaCuoiCung
-            FROM SuatChieu sc
-            JOIN Phim p ON sc.MaPhim = p.MaPhim
-            JOIN PhongChieu pc ON sc.MaPhong = pc.MaPhong
-            JOIN LoaiPhong lp ON sc.MaLoaiPhong = lp.MaLoaiPhong
-            JOIN GiaVe_CoBan gv ON sc.MaGiaVe = gv.MaGiaVe
-            WHERE pc.MaCumRap = %s
-            ORDER BY sc.GioBatDau DESC
-        """
-        ds_tatca = database.fetch_all(query_tat_ca, (session.get('ma_cum_rap'),))
-        ds_phong = database.fetch_all("SELECT MaPhong, TenPhong FROM PhongChieu WHERE MaCumRap = %s", (session.get('ma_cum_rap'),))
+        if session.get('chuc_vu') == 'Admin':
+            query_tat_ca = "SELECT * FROM v_SuatChieuChiTiet ORDER BY GioBatDau DESC"
+            ds_tatca = database.fetch_all(query_tat_ca)
+            ds_phong = database.fetch_all("SELECT MaPhong, TenPhong FROM PhongChieu")
+        else:
+            query_tat_ca = "SELECT * FROM v_SuatChieuChiTiet WHERE MaCumRap = %s ORDER BY GioBatDau DESC"
+            ds_tatca = database.fetch_all(query_tat_ca, (session.get('ma_cum_rap'),))
+            ds_phong = database.fetch_all("SELECT MaPhong, TenPhong FROM PhongChieu WHERE MaCumRap = %s", (session.get('ma_cum_rap'),))
 
     # Lấy dữ liệu cho dropdown trong form thêm mới
     ds_phim = database.fetch_all("SELECT MaPhim, TenPhim FROM Phim")
@@ -67,7 +77,8 @@ def index():
     
     return render_template('suat_chieu/index.html', title="Quản Lý Lịch Chiếu", 
                            ds_homnay=ds_homnay, ds_tatca=ds_tatca,
-                           ds_phim=ds_phim, ds_phong=ds_phong, ds_gia_ve=ds_gia_ve, ds_loai_phong=ds_loai_phong)
+                           ds_phim=ds_phim, ds_phong=ds_phong, ds_gia_ve=ds_gia_ve, ds_loai_phong=ds_loai_phong,
+                           q=q)
 
 @suat_chieu_bp.route('/them', methods=['POST'])
 def them_suat_chieu():
