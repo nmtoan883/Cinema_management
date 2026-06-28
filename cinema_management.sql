@@ -305,7 +305,8 @@ CREATE TABLE PhongChieu (
 
     CONSTRAINT FK_PhongChieu_CumRap
         FOREIGN KEY (MaCumRap) 
-        REFERENCES CumRap(MaCumRap),
+        REFERENCES CumRap(MaCumRap)
+        ON DELETE RESTRICT,   -- Ngăn xóa CumRap khi còn PhongChieu đang hoạt động
 
     CONSTRAINT CK_PhongChieu_SucChua
         CHECK (SucChua > 0),
@@ -328,11 +329,13 @@ CREATE TABLE Ghe (
 
     CONSTRAINT FK_Ghe_PhongChieu
         FOREIGN KEY (MaPhong) 
-        REFERENCES PhongChieu(MaPhong),
+        REFERENCES PhongChieu(MaPhong)
+        ON DELETE CASCADE,    -- Xóa PhongChieu -> tự động xóa toàn bộ Ghe bên trong
 
     CONSTRAINT FK_Ghe_LoaiGhe
         FOREIGN KEY (MaLoaiGhe) 
-        REFERENCES LoaiGhe(MaLoaiGhe),
+        REFERENCES LoaiGhe(MaLoaiGhe)
+        ON DELETE RESTRICT,   -- Ngăn xóa LoaiGhe khi còn Ghe đang dùng loại đó
 
     CONSTRAINT UQ_Ghe_MaPhong_TenGhe
         UNIQUE (MaPhong, TenGhe)
@@ -360,13 +363,14 @@ GROUP BY
 DELIMITER $$
 
 CREATE TRIGGER trg_KiemTraSucChuaGhe
-AFTER INSERT ON Ghe
+BEFORE INSERT ON Ghe
 FOR EACH ROW
 BEGIN
     DECLARE SoGheHienCo INT;
     DECLARE SucChuaPhong INT;
 
-    SELECT COUNT(*)
+    -- BEFORE INSERT: COUNT(*) chưa bao gồm hàng đang thêm, cộng thêm 1 để kiểm tra
+    SELECT COUNT(*) + 1
     INTO SoGheHienCo
     FROM Ghe
     WHERE MaPhong = NEW.MaPhong;
@@ -416,13 +420,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Cum rap khong ton tai.';
     END IF;
 
-    -- Kiểm tra loại phòng có tồn tại không
-    IF NOT EXISTS (
-        SELECT 1 FROM LoaiPhong WHERE MaLoaiPhong = p_MaLoaiPhong
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Loai phong khong ton tai.';
-    END IF;
+    -- (Loại phòng được gán tại SuatChieu, không phải PhongChieu, nên không kiểm tra ở đây)
 
     -- Kiểm tra loại ghế mặc định có tồn tại không
     IF NOT EXISTS (
@@ -437,8 +435,8 @@ BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO PhongChieu(TenPhong, MaCumRap, MaLoaiPhong, SoHang, SoCot, SucChua)
-    VALUES (p_TenPhong, p_MaCumRap, p_MaLoaiPhong, p_SoHang, p_SoCot, v_SucChua);
+    INSERT INTO PhongChieu(TenPhong, MaCumRap, SoHang, SoCot, SucChua)
+    VALUES (p_TenPhong, p_MaCumRap, p_SoHang, p_SoCot, v_SucChua);
 
     SET v_MaPhongMoi = LAST_INSERT_ID();
 
@@ -857,7 +855,7 @@ BEGIN
 END$$
 
 DELIMITER ;
-DELIMITER $ $
+DELIMITER $$
 
 -- ==============================================
 -- PHẦN CỦA THÀNH VIÊN 4: KHÁCH HÀNG & F&B
@@ -880,7 +878,7 @@ BEGIN
     IF v_MaHang IS NOT NULL THEN
         SET NEW.MaHang = v_MaHang;
     END IF;
-END$ $
+END$$
 
 -- 2. TRIGGER: Trừ số lượng tồn kho bắp nước khi bán (Ngăn xuất âm)
 CREATE TRIGGER trg_XuatKhoDichVu
@@ -902,7 +900,7 @@ BEGIN
         SET SoLuongTon = SoLuongTon - NEW.SoLuong
         WHERE MaDichVu = NEW.MaDichVu;
     END IF;
-END$ $
+END$$
 
 -- 3. PROCEDURE: Kiểm tra và áp dụng mã Voucher
 CREATE PROCEDURE sp_KiemTraVoucher(
@@ -946,7 +944,7 @@ BEGIN
         
         SET p_TrangThai = 'Áp dụng thành công';
     END IF;
-END$ $
+END$$
 
 DELIMITER ;
 -- Dữ liệu mẫu (Mock Data)
