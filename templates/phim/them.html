@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h1>🎬 Thêm Phim Mới</h1>
+
+    <form method="POST">
+        <div class="form-group">
+            <label>Tên Phim</label>
+            <input type="text" name="ten_phim" required>
+        </div>
+
+        <div class="form-group">
+            <label>Thời Lượng (phút)</label>
+            <input type="number" name="thoi_luong" required>
+        </div>
+
+        <div class="form-group">
+            <label>Ngày Khởi Chiếu</label>
+            <input type="date" name="ngay_khoi_chieu" required>
+        </div>
+
+        <div class="form-group">
+            <label>Độ Tuổi</label>
+            <input type="number" name="do_tuoi" required>
+        </div>
+
+        <div class="form-group">
+            <label>Thể Loại</label>
+            <select name="ma_the_loai">
+                {% for tl in ds_the_loai %}
+                <option value="{{ tl.MaTheLoai }}">
+                    {{ tl.TenTheLoai }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn">
+                💾 Lưu Phim
+            </button>
+
+            <a href="/phim" class="btn"
+               style="background:#6b7280;">
+               Hủy
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

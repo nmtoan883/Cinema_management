@@ -1,25 +1,147 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, url_prefix
 import database
 
-# Đăng ký Blueprint cho module Phim
-phim_bp = Blueprint('phim', __name__)
+phim_bp = Blueprint(
+    'phim',
+    __name__,
+    url_prefix='/phim'
+)
+
 
 @phim_bp.route('/')
 def index():
-    """Trang chủ của module quản lý phim: Hiển thị danh sách"""
-    query = "SELECT MaPhim, TenPhim, ThoiLuong, NgayKhoiChieu, DoTuoi FROM Phim"
-    results = database.fetch_all(query)
-    
-    return render_template('phim/index.html', title="Quản lý Phim", ds_phim=results)
+    """Danh sách phim và thể loại"""
+
+    sql = """
+    SELECT
+        PHIM.MaPhim,
+        PHIM.TenPhim,
+        PHIM.ThoiLuong,
+        PHIM.NgayKhoiChieu,
+        PHIM.GioiHanDoTuoi,
+        GROUP_CONCAT(THELOAI.TenTheLoai SEPARATOR ', ') AS TheLoai
+    FROM PHIM
+    LEFT JOIN PHIM_THELOAI
+        ON PHIM.MaPhim = PHIM_THELOAI.MaPhim
+    LEFT JOIN THELOAI
+        ON THELOAI.MaTheLoai = PHIM_THELOAI.MaTheLoai
+    GROUP BY PHIM.MaPhim
+    ORDER BY PHIM.MaPhim DESC
+    """
+
+    ds_phim = database.fetch_all(sql)
+
+    return render_template(
+        'phim/index.html',
+        title='Quản lý Phim',
+        ds_phim=ds_phim
+    )
+
 
 @phim_bp.route('/them', methods=['GET', 'POST'])
 def them_phim():
-    """Trang thêm phim mới"""
+
     if request.method == 'POST':
-        # Lấy dữ liệu từ form (tự viết HTML form nhé)
-        ten_phim = request.form.get('ten_phim')
-        thoi_luong = request.form.get('thoi_luong')
-        # Gọi SQL insert ở đây...
-        
-        return redirect('/phim')
-    return render_template('phim/them.html', title="Thêm Phim")
+
+        ten_phim = request.form['ten_phim']
+        thoi_luong = request.form['thoi_luong']
+        ngay_khoi_chieu = request.form['ngay_khoi_chieu']
+        gioi_han = request.form['gioi_han']
+
+        sql = """
+        INSERT INTO PHIM
+        (
+            TenPhim,
+            ThoiLuong,
+            NgayKhoiChieu,
+            GioiHanDoTuoi
+        )
+        VALUES (%s,%s,%s,%s)
+        """
+
+        database.execute_query(
+            sql,
+            (
+                ten_phim,
+                thoi_luong,
+                ngay_khoi_chieu,
+                gioi_han
+            )
+        )
+
+        return redirect(url_for('phim.index'))
+
+    ds_the_loai = database.fetch_all(
+        "SELECT * FROM THELOAI"
+    )
+
+    return render_template(
+        'phim/them.html',
+        ds_the_loai=ds_the_loai,
+        title='Thêm phim'
+    )
+
+
+@phim_bp.route('/theloai')
+def danh_muc():
+
+    sql = """
+    SELECT *
+    FROM THELOAI
+    ORDER BY TenTheLoai
+    """
+
+    ds_the_loai = database.fetch_all(sql)
+
+    return render_template(
+        'phim/theloai.html',
+        ds_the_loai=ds_the_loai,
+        title='Danh mục phim'
+    )
+
+
+@phim_bp.route('/theloai/them', methods=['GET', 'POST'])
+def them_the_loai():
+
+    if request.method == 'POST':
+
+        ten_the_loai = request.form['ten_the_loai']
+
+        sql = """
+        INSERT INTO THELOAI(TenTheLoai)
+        VALUES(%s)
+        """
+
+        database.execute_query(
+            sql,
+            (ten_the_loai,)
+        )
+
+        return redirect('/phim/theloai')
+
+    return render_template(
+        'phim/them_theloai.html',
+        title='Thêm thể loại'
+    )
+
+
+@phim_bp.route('/xoa/<int:ma_phim>')
+def xoa_phim(ma_phim):
+
+    database.execute_query(
+        "DELETE FROM PHIM WHERE MaPhim=%s",
+        (ma_phim,)
+    )
+
+    return redirect('/phim')
+
+
+@phim_bp.route('/theloai/xoa/<int:ma_the_loai>')
+def xoa_the_loai(ma_the_loai):
+
+    database.execute_query(
+        "DELETE FROM THELOAI WHERE MaTheLoai=%s",
+        (ma_the_loai,)
+    )
+
+    return redirect('/phim/theloai')
