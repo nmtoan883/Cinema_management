@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="inline-style-5" >
+    <!-- Banner mờ phía sau -->
+    <div class="inline-style-6" >
+        <img class="inline-style-7" src="{{ phim.Poster }}" >
+    </div>
+    
+    <div class="inline-style-8" >
+        <!-- Poster Bên Trái -->
+        <div class="inline-style-9" >
+            <img class="inline-style-10" src="{{ phim.Poster }}" alt="{{ phim.TenPhim }}" >
+        </div>
+        
+        <!-- Chi tiết Bên Phải -->
+        <div class="inline-style-11" >
+            <h1 class="inline-style-12" >{{ phim.TenPhim }}</h1>
+            
+            <div class="inline-style-13" >
+                <span class="inline-style-14" >
+                    ⏱️ {{ phim.ThoiLuong }} phút
+                </span>
+                <span class="inline-style-14" >
+                    📅 {{ phim.NgayKhoiChieu.strftime('%d/%m/%Y') if phim.NgayKhoiChieu else 'N/A' }}
+                </span>
+                <span style="background: rgba(0,0,0,0.5); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: bold;
+                    {% if '18' in phim.GioiHanDoTuoi %} color: #ef4444; border: 1px solid #ef4444;
+                    {% elif '16' in phim.GioiHanDoTuoi %} color: #f59e0b; border: 1px solid #f59e0b;
+                    {% else %} color: #10b981; border: 1px solid #10b981; {% endif %}">
+                    {{ phim.GioiHanDoTuoi }}
+                </span>
+            </div>
+            
+            <p class="inline-style-15" >
+                {{ phim.MoTa }}
+            </p>
+            
+            <div class="inline-style-16" >
+                <span class="inline-style-17" >Đạo diễn:</span>
+                <span class="inline-style-18" >{{ phim.TenDaoDien }}</span>
+                
+                <span class="inline-style-17" >Thể loại:</span>
+                <span class="inline-style-18" >{{ phim.CacTheLoai }}</span>
+            </div>
+            
+            <div class="inline-style-19" >
+                <a href="/datve?phim_id={{ phim.MaPhim }}" class="btn inline-style-20" >🎟️ Mua Vé Ngay</a>
+                {% if phim.TrailerURL %}
+                <button onclick="openTrailerModal()" class="btn inline-style-21" >▶️ Xem Trailer</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="inline-style-22" >
+    <h2 class="inline-style-23" >📅 Lịch Chiếu Theo Rạp</h2>
+    
+    {% if lich_chieu %}
+        {% for rap, suat_chieus in lich_chieu.items() %}
+        <div class="inline-style-24" >
+            <h3 class="inline-style-25" >📍 {{ rap }}</h3>
+            <div class="inline-style-26" >
+                {% for sc in suat_chieus %}
+                <a class="inline-style-27" href="/datve?phim_id={{ phim.MaPhim }}"  onmouseover="this.style.borderColor='var(--primary)'; this.style.background='rgba(139, 92, 246, 0.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)'; this.style.background='rgba(255,255,255,0.05)'">
+                    <strong class="inline-style-28" >{{ sc.GioBatDau.strftime('%H:%M') }}</strong>
+                    <span class="inline-style-29" >{{ sc.GioBatDau.strftime('%d/%m/%Y') }}</span>
+                    <span class="inline-style-30" >{{ sc.TenLoaiPhong }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="inline-style-31" >
+            <p class="inline-style-32" >Xin lỗi, hiện tại chưa có lịch chiếu nào cho phim này.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Trailer Modal -->
+{% if phim.TrailerURL %}
+<div class="inline-style-33" id="trailerModal" >
+    <div class="inline-style-34" >
+        <button class="inline-style-35" onclick="closeTrailerModal()" >&times;</button>
+        <iframe class="inline-style-36" id="trailerIframe" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen ></iframe>
+    </div>
+</div>
+
+<script>
+    function openTrailerModal() {
+        var modal = document.getElementById('trailerModal');
+        var iframe = document.getElementById('trailerIframe');
+        // Thêm autoplay=1 vào link youtube để tự động chạy khi mở
+        var videoUrl = "{{ phim.TrailerURL }}";
+        
+        // Chuyển đổi link youtube thường thành link embed
+        var videoId = "";
+        if (videoUrl.includes("youtube.com/watch?v=")) {
+            videoId = videoUrl.split("v=")[1].split("&")[0];
+        } else if (videoUrl.includes("youtu.be/")) {
+            videoId = videoUrl.split("youtu.be/")[1].split("?")[0];
+        }
+        
+        if (videoId) {
+            videoUrl = "https://www.youtube.com/embed/" + videoId;
+        }
+
+        if (videoUrl.includes('?')) {
+            videoUrl += "&autoplay=1";
+        } else {
+            videoUrl += "?autoplay=1";
+        }
+        iframe.src = videoUrl;
+        modal.style.display = 'flex';
+    }
+
+    function closeTrailerModal() {
+        var modal = document.getElementById('trailerModal');
+        var iframe = document.getElementById('trailerIframe');
+        iframe.src = ""; // Stop video
+        modal.style.display = 'none';
+    }
+</script>
+{% endif %}
+
+{% endblock %}

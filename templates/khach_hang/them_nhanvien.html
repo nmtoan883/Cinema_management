@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card inline-style-115" >
+    <h2 class="inline-style-124" >Khai Báo Nhân Sự Mới</h2>
+    
+    <form action="/khachhang/nhanvien/them" method="POST">
+        <div class="form-group">
+            <label>Họ và Tên Nhân Viên (*)</label>
+            <input type="text" name="ho_ten" placeholder="Nhập tên nhân viên" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Chức Vụ (*)</label>
+            <select name="chuc_vu" required>
+                <option value="Bán vé">Nhân viên Bán vé / Bắp nước</option>
+                <option value="Soát vé">Nhân viên Soát vé</option>
+                <option value="Quản lý rạp">Quản lý Cụm Rạp</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Nơi Làm Việc (Cụm Rạp) (*)</label>
+            <select name="ma_cum_rap" required>
+                {% for rap in ds_rap %}
+                <option value="{{ rap.MaCumRap }}">{{ rap.TenCumRap }}</option>
+                {% endfor %}
+            </select>
+            <small class="inline-style-125" >(Danh sách rạp được lấy từ Phân hệ Cơ sở vật chất của Thành viên 2)</small>
+        </div>
+
+        <div class="inline-style-118" >
+            <button type="submit" class="btn inline-style-126" >Lưu Nhân Viên</button>
+            <a href="/khachhang" class="btn inline-style-120" >Hủy Bỏ</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

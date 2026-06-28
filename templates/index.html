@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div class="inline-style-37" >
+    <div class="inline-style-38" ></div>
+    <img class="inline-style-39" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1200&auto=format&fit=crop" alt="Cinema Banner" >
+    
+    <div class="inline-style-40" >
+        <h1 class="inline-style-41" >Trải nghiệm điện ảnh đỉnh cao</h1>
+        <p class="inline-style-42" >Hệ thống rạp chiếu phim hiện đại nhất với công nghệ IMAX 3D và âm thanh vòm sống động.</p>
+        <div>
+            <a href="/datve" class="btn inline-style-43" >🎟️ Đặt Vé Ngay</a>
+        </div>
+    </div>
+</div>
+
+<!-- Movie Grid -->
+<div class="inline-style-44" >
+    <h2 class="inline-style-45" >Phim Đang Chiếu</h2>
+</div>
+
+<div class="inline-style-46" >
+    {% for phim in ds_phim %}
+    <div class="card inline-style-47" >
+        <a class="inline-style-48" href="/chi-tiet-phim/{{ phim.MaPhim }}" >
+            <div class="inline-style-49" >
+                <img class="inline-style-50" src="{{ phim.Poster }}" alt="{{ phim.TenPhim }}"  onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; font-size: 0.9rem;
+                    {% if '18' in phim.GioiHanDoTuoi %} color: #ef4444; border: 1px solid #ef4444;
+                    {% elif '16' in phim.GioiHanDoTuoi %} color: #f59e0b; border: 1px solid #f59e0b;
+                    {% else %} color: #10b981; border: 1px solid #10b981; {% endif %}">
+                    {{ phim.GioiHanDoTuoi }}
+                </div>
+            </div>
+            
+            <div class="inline-style-51" >
+                <h3 class="inline-style-52" >{{ phim.TenPhim }}</h3>
+                
+                <div class="inline-style-53" >
+                    <span>⏱️ {{ phim.ThoiLuong }} phút</span>
+                    <span>📅 {{ phim.NgayKhoiChieu.strftime('%d/%m/%Y') if phim.NgayKhoiChieu else 'N/A' }}</span>
+                </div>
+                
+                <p class="inline-style-54" >
+                    🎭 {{ phim.CacTheLoai }}
+                </p>
+            </div>
+        </a>
+        <div class="inline-style-55" >
+            <a href="/datve?phim_id={{ phim.MaPhim }}" class="btn inline-style-56" >Mua Vé</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="inline-style-57" >
+        <p class="inline-style-58" >Hiện chưa có phim nào đang chiếu.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

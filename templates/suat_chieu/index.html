@@ -1,131 +1,232 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
-    <!-- Form Thêm Suất Chiếu -->
-    <div class="card">
-        <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Thêm Suất Chiếu Mới</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Lưu ý: Trigger sẽ kiểm tra và chặn nếu trùng lịch ở cùng phòng.</p>
-        
-        <form action="/suatchieu/them" method="POST">
-            <div class="form-group">
-                <label>Phim</label>
-                <select name="ma_phim" required class="form-control">
-                    <option value="">-- Chọn Phim --</option>
-                    {% for p in ds_phim %}
-                    <option value="{{ p.MaPhim }}">{{ p.TenPhim }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Phòng Chiếu</label>
-                <select name="ma_phong" required class="form-control">
-                    <option value="">-- Chọn Phòng --</option>
-                    {% for p in ds_phong %}
-                    <option value="{{ p.MaPhong }}">{{ p.TenPhong }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+<div class="header-banner">
+    <h2><i class="fas fa-calendar-alt"></i> QUẢN LÝ LỊCH CHIẾU</h2>
+    <p>Thêm suất chiếu mới, xem lịch chiếu hôm nay và toàn bộ lịch chiếu trong hệ thống.</p>
+</div>
 
-            <div class="form-group">
-                <label>Mức Giá Cơ Bản</label>
-                <select name="ma_gia_ve" required class="form-control">
-                    <option value="">-- Chọn Giá Vé --</option>
-                    {% for g in ds_gia_ve %}
-                    <option value="{{ g.MaGiaVe }}">{{ g.KhungGio }} - {{ g.LoaiNgay }} ({{ "{:,}".format(g.GiaCoBan) }}đ)</option>
-                    {% endfor %}
-                </select>
-            </div>
 
-            <div class="form-group">
-                <label>Giờ Bắt Đầu</label>
-                <input type="datetime-local" name="gio_bat_dau" required class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Giờ Kết Thúc</label>
-                <input type="datetime-local" name="gio_ket_thuc" required class="form-control">
-            </div>
-            
-            <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Tạo Suất Chiếu</button>
-        </form>
+
+<div class="content-section">
+    <div class="tabs">
+        <button class="tab-link current" data-tab="homnay">Lịch Chiếu Hôm Nay</button>
+        <button class="tab-link" data-tab="tatca">Tất Cả Lịch Chiếu</button>
+        <button class="tab-link" data-tab="themmoi">Thêm Suất Chiếu Mới</button>
     </div>
 
-    <!-- Danh sách Suất Chiếu -->
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
+    <!-- TAB 1: Lịch Chiếu Hôm Nay -->
+    <div id="homnay" class="tab-content current">
+        {% if ds_homnay %}
+        <table class="table table-striped table-bordered" id="homNayTable">
+            <thead>
+                <tr>
+                    <th>Phim</th>
+                    <th>Phòng</th>
+                    <th>Định Dạng</th>
+                    <th>Bắt Đầu</th>
+                    <th>Khung Giờ</th>
+                    <th>Giá Vé CB</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in ds_homnay %}
+                <tr>
+                    <td><strong>{{ l.TenPhim }}</strong></td>
+                    <td>{{ l.TenPhong }}</td>
+                    <td><span class="badge extracted-style-1061">{{ l.DinhDang }}</span></td>
+                    <td>{{ l.GioBatDau.strftime('%H:%M') if l.GioBatDau else l.GioBatDau }}</td>
+                    <td>{{ l.KhungGio }} ({{ l.LoaiNgay }})</td>
+                    <td class="inline-style-159" >{{ "{:,.0f}".format(l.GiaCoBan) }}đ</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="inline-style-160" >Hôm nay chưa có lịch chiếu nào.</p>
+        {% endif %}
+    </div>
+
+    <!-- TAB 2: Tất Cả Lịch Chiếu -->
+    <div id="tatca" class="tab-content">
+        {% if ds_tatca %}
         
-        <!-- Lịch chiếu hôm nay (Từ View) -->
-        <div class="card">
-            <h2 style="margin-bottom: 1.5rem; color: #f59e0b;">Lịch Chiếu Hôm Nay (VIEW)</h2>
-            {% if ds_homnay %}
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Phim</th>
-                            <th>Phòng</th>
-                            <th>Bắt Đầu</th>
-                            <th>Khung Giờ</th>
-                            <th>Giá Vé CB</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for l in ds_homnay %}
-                        <tr>
-                            <td><strong>{{ l.TenPhim }}</strong></td>
-                            <td>{{ l.TenPhong }}</td>
-                            <td>{{ l.GioBatDau.strftime('%H:%M') if l.GioBatDau else l.GioBatDau }}</td>
-                            <td>{{ l.KhungGio }} ({{ l.LoaiNgay }})</td>
-                            <td style="color: #34d399; font-weight: bold;">{{ "{:,}".format(l.GiaCoBan) }}đ</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p style="color: var(--text-muted); text-align: center; padding: 1rem;">Hôm nay chưa có lịch chiếu nào.</p>
-            {% endif %}
+        <div class="extracted-style-1062">
+            <select id="filterPhim" class="form-control extracted-style-1063">
+                <option value="">-- Tất cả Phim --</option>
+                {% for p in ds_phim %}
+                <option value="{{ p.TenPhim }}">{{ p.TenPhim }}</option>
+                {% endfor %}
+            </select>
+            <select id="filterPhong" class="form-control extracted-style-1063">
+                <option value="">-- Tất cả Phòng --</option>
+                {% for p in ds_phong %}
+                <option value="{{ p.TenPhong }}">{{ p.TenPhong }}</option>
+                {% endfor %}
+            </select>
+            <input type="date" id="filterDate" class="form-control extracted-style-1063">
+            <button class="btn btn-primary" onclick="applyFilters()">Lọc</button>
+            <button class="btn extracted-style-1064" onclick="clearFilters()">Xóa Lọc</button>
         </div>
+        <table class="table table-striped table-bordered" id="tatCaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Phim</th>
+                    <th>Phòng</th>
+                    <th>ĐỊNH DẠNG</th>
+                    <th>THỜI GIAN</th>
+                    <th>MỨC GIÁ</th>
+                    <th>THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sc in ds_tatca %}
+                <tr>
+                    <td>{{ sc.MaSuatChieu }}</td>
+                    <td><strong>{{ sc.TenPhim }}</strong></td>
+                    <td>{{ sc.TenPhong }}</td>
+                    <td><span class="badge extracted-style-1061">{{ sc.DinhDang }}</span></td>
+                    <td class="inline-style-162" >
+                        BĐ: {{ sc.GioBatDau }}<br>
+                        KT: {{ sc.GioKetThuc }}
+                    </td>
+                    <td>
+                        Cơ bản:<br>
+                        <span class="extracted-style-1065">{{ "{:,.0f}".format(sc.GiaCoBan) }}đ</span><br>
+                        Cuối:<br>
+                        <span class="extracted-style-1008">{{ "{:,.0f}".format(sc.GiaCuoiCung if sc.GiaCuoiCung else sc.GiaCoBan) }}đ</span>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('suat_chieu.xoa_suat_chieu', id=sc.MaSuatChieu) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa suất chiếu này không? (Nếu đã có người đặt vé, suất chiếu này không thể xóa)');" class="extracted-style-1021">
+                            <button type="submit" class="btn btn-danger extracted-style-1066">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="inline-style-101" >Chưa có dữ liệu lịch chiếu.</p>
+        {% endif %}
+    </div>
 
-        <!-- Tất cả suất chiếu -->
-        <div class="card">
-            <h2 style="margin-bottom: 1.5rem;">Tất Cả Lịch Chiếu</h2>
-            {% if ds_tatca %}
-            <div style="overflow-x: auto; max-height: 400px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Phim</th>
-                            <th>Phòng</th>
-                            <th>Thời Gian</th>
-                            <th>Mức Giá</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for l in ds_tatca %}
-                        <tr>
-                            <td>{{ l.MaSuatChieu }}</td>
-                            <td><strong>{{ l.TenPhim }}</strong></td>
-                            <td>{{ l.TenPhong }}</td>
-                            <td style="font-size: 0.9em;">
-                                BĐ: {{ l.GioBatDau }}<br>
-                                KT: {{ l.GioKetThuc }}
-                            </td>
-                            <td>
-                                Cơ bản: <span style="color: #6b7280;">{{ "{:,}".format(l.GiaCoBan) }}đ</span><br>
-                                Cuối: <span style="color: #ef4444; font-weight: bold;">{{ "{:,}".format(l.GiaCuoiCung) if l.GiaCuoiCung else l.GiaCoBan }}đ</span>
-                            </td>
-                        </tr>
+    <!-- TAB 3: Thêm Suất Chiếu Mới -->
+    <div id="themmoi" class="tab-content">
+        <div class="card extracted-style-1010">
+            <h2 class="inline-style-123" >Thêm Suất Chiếu Mới</h2>
+            <p class="inline-style-156" >Lưu ý: Trigger sẽ kiểm tra và chặn nếu trùng lịch ở cùng phòng.</p>
+            
+            <form action="/suatchieu/them" method="POST">
+                <div class="form-group">
+                    <label>Phim</label>
+                    <select name="ma_phim" required class="form-control">
+                        <option value="">-- Chọn Phim --</option>
+                        {% for p in ds_phim %}
+                        <option value="{{ p.MaPhim }}">{{ p.TenPhim }}</option>
                         {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu lịch chiếu.</p>
-            {% endif %}
-        </div>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Phòng Chiếu</label>
+                    <select name="ma_phong" required class="form-control">
+                        <option value="">-- Chọn Phòng --</option>
+                        {% for p in ds_phong %}
+                        <option value="{{ p.MaPhong }}">{{ p.TenPhong }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Định Dạng (Loại Phòng)</label>
+                    <select name="ma_loai_phong" required class="form-control">
+                        <option value="">-- Chọn Định Dạng --</option>
+                        {% for lp in ds_loai_phong %}
+                        <option value="{{ lp.MaLoaiPhong }}">{{ lp.TenLoaiPhong }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
+                <div class="form-group">
+                    <label>Mức Giá Cơ Bản</label>
+                    <select name="ma_gia_ve" required class="form-control">
+                        <option value="">-- Chọn Giá Vé --</option>
+                        {% for g in ds_gia_ve %}
+                        <option value="{{ g.MaGiaVe }}">{{ g.KhungGio }} - {{ g.LoaiNgay }} ({{ "{:,.0f}".format(g.GiaCoBan) }}đ)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Giờ Bắt Đầu</label>
+                    <input type="datetime-local" name="gio_bat_dau" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Giờ Kết Thúc</label>
+                    <input type="datetime-local" name="gio_ket_thuc" required class="form-control">
+                </div>
+                
+                <button type="submit" class="btn inline-style-157 extracted-style-1067">Tạo Suất Chiếu</button>
+            </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab Script
+    document.querySelectorAll('.tab-link').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('current'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('current'));
+            
+            button.classList.add('current');
+            document.getElementById(button.dataset.tab).classList.add('current');
+        });
+    });
+
+    if(window.location.hash) {
+        let hash = window.location.hash.substring(1);
+        let tab = document.querySelector('.tab-link[data-tab="' + hash + '"]');
+        if(tab) tab.click();
+    }
+
+    
+    $(document).ready(function() {
+        var homNayTable = $('#homNayTable').DataTable({
+            "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json" },
+            "pageLength": 10,
+            "ordering": false
+        });
+        window.tatCaTable = $('#tatCaTable').DataTable({
+            "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json" },
+            "pageLength": 10,
+            "ordering": false
+        });
+    });
+
+    function applyFilters() {
+        var phim = $('#filterPhim').val();
+        var phong = $('#filterPhong').val();
+        var date = $('#filterDate').val(); // YYYY-MM-DD
+        
+        // Cột 1 là Phim, Cột 2 là Phòng, Cột 4 là Thời gian (chứa ngày)
+        window.tatCaTable.column(1).search(phim);
+        window.tatCaTable.column(2).search(phong);
+        window.tatCaTable.column(4).search(date);
+        
+        window.tatCaTable.draw();
+    }
+
+    function clearFilters() {
+        $('#filterPhim').val('');
+        $('#filterPhong').val('');
+        $('#filterDate').val('');
+        
+        window.tatCaTable.search('').columns().search('').draw();
+    }
+
+</script>
 {% endblock %}

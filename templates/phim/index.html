@@ -2,36 +2,76 @@
 
 {% block content %}
 <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1>🎬 Quản Lý Phim & Danh Mục</h1>
-        <a href="/phim/them" class="btn">+ Thêm Phim Mới</a>
+    <div class="inline-style-132" >
+        <h1>Quản Lý Phim & Danh Mục</h1>
+        <div class="inline-style-95" >
+            {% if session.chuc_vu == 'Admin' %}
+                <a href="/phim/theloai" class="btn inline-style-136" >Quản Lý Thể Loại</a>
+                <a href="/phim/gioi-han" class="btn inline-style-136" >Quản Lý Độ Tuổi</a>
+                <a href="/phim/dao-dien" class="btn inline-style-136" >Quản Lý Đạo Diễn</a>
+                <a href="/phim/dien-vien" class="btn inline-style-136" >Quản Lý Diễn Viên</a>
+                <a href="/phim/them" class="btn">Thêm Phim Mới</a>
+            {% endif %}
+        </div>
     </div>
 
     {% if ds_phim %}
     <table>
         <thead>
             <tr>
+                <th>STT</th>
                 <th>Mã Phim</th>
                 <th>Tên Phim</th>
                 <th>Thời Lượng (Phút)</th>
                 <th>Ngày Khởi Chiếu</th>
                 <th>Độ Tuổi</th>
+                {% if session.chuc_vu == 'Admin' %}
+                <th class="inline-style-137" >Thao tác</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
             {% for p in ds_phim %}
             <tr>
+                <td>{{ (page - 1) * per_page + loop.index }}</td>
                 <td>{{ p.MaPhim }}</td>
                 <td><strong>{{ p.TenPhim }}</strong></td>
                 <td>{{ p.ThoiLuong }}</td>
                 <td>{{ p.NgayKhoiChieu }}</td>
-                <td><span style="background: rgba(244,63,94,0.2); color:#f43f5e; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold;">T{{ p.DoTuoi }}</span></td>
+                <td><span class="inline-style-138" >{{ p.GioiHanDoTuoi }}</span></td>
+                {% if session.chuc_vu == 'Admin' %}
+                <td class="inline-style-139" >
+                    <a href="/phim/sua/{{ p.MaPhim }}" class="btn inline-style-140" >Sửa</a>
+                    <form class="inline-style-141" action="/phim/xoa/{{ p.MaPhim }}" method="POST"  onsubmit="return confirm('Bạn có chắc chắn muốn xóa phim này?');">
+                        <button type="submit" class="btn inline-style-142" >Xóa</button>
+                    </form>
+                </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    
+    {% if total_pages > 1 %}
+    <div class="inline-style-143" >
+        {% if page > 1 %}
+            <a href="/phim/?page={{ page - 1 }}" class="btn inline-style-144" >Trước</a>
+        {% endif %}
+        
+        {% for p_num in range(1, total_pages + 1) %}
+            <a href="/phim/?page={{ p_num }}" class="btn" style="background: {% if p_num == page %}#e50914{% else %}rgba(255,255,255,0.1){% endif %}; padding: 0.5rem 1rem;">
+                {{ p_num }}
+            </a>
+        {% endfor %}
+        
+        {% if page < total_pages %}
+            <a href="/phim/?page={{ page + 1 }}" class="btn inline-style-144" >Tiếp</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
     {% else %}
-    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu phim trong cơ sở dữ liệu.</p>
+    <p class="inline-style-101" >Chưa có dữ liệu phim trong cơ sở dữ liệu.</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card extracted-style-1033">
+    <h2>{{ title }}</h2>
+    <form action="" method="POST">
+        <div class="form-group">
+            <label>Họ và Tên</label>
+            <input type="text" name="ho_ten" class="form-control" required placeholder="Nhập tên diễn viên..." value="{{ dienvien.HoTen if dienvien else '' }}">
+        </div>
+        <div class="form-group">
+            <label>Ngày Sinh</label>
+            <input type="date" name="ngay_sinh" class="form-control" required value="{{ dienvien.NgaySinh if dienvien and dienvien.NgaySinh else '' }}">
+        </div>
+        
+        <div class="extracted-style-1034">
+            <button type="submit" class="btn btn-primary extracted-style-1035">Lưu Thông Tin</button>
+            <a href="/phim/dien-vien" class="btn extracted-style-1036">Hủy</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

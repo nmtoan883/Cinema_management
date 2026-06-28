@@ -2,34 +2,874 @@
 
 {% block content %}
 <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1>🏢 Cơ Sở Vật Chất & Phòng Chiếu</h1>
-        <a href="#" class="btn">+ Thêm Phòng</a>
+    <div class="section-tabs">
+        <a href="{{ url_for('rap.index', section='cumrap') }}" class="section-tab {{ 'active' if active_section == 'cumrap' else '' }}">CumRap</a>
+        <a href="{{ url_for('rap.index', section='loaiphong') }}" class="section-tab {{ 'active' if active_section == 'loaiphong' else '' }}">LoaiPhong</a>
+        <a href="{{ url_for('rap.index', section='loaighe') }}" class="section-tab {{ 'active' if active_section == 'loaighe' else '' }}">LoaiGhe</a>
+        <a href="{{ url_for('rap.index', section='phongchieu') }}" class="section-tab {{ 'active' if active_section == 'phongchieu' else '' }}">PhongChieu</a>
+        <a href="{{ url_for('rap.index', section='ghe') }}" class="section-tab {{ 'active' if active_section == 'ghe' else '' }}">Ghe</a>
+        <a href="{{ url_for('rap.index', section='thongke') }}" class="section-tab {{ 'active' if active_section == 'thongke' else '' }}">ThongKe</a>
     </div>
 
-    {% if ds_phong %}
-    <table>
-        <thead>
-            <tr>
-                <th>Mã Phòng</th>
-                <th>Tên Phòng</th>
-                <th>Mã Cụm Rạp</th>
-                <th>Sức Chứa</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in ds_phong %}
-            <tr>
-                <td>{{ p.MaPhong }}</td>
-                <td><strong>{{ p.TenPhong }}</strong></td>
-                <td>{{ p.MaCumRap }}</td>
-                <td>{{ p.SucChua }} Ghế</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% if active_section == 'cumrap' %}
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / CumRap</p>
+            <h1>Quan ly cum rap</h1>
+            <p class="section-copy">Khai bao chi nhanh rap voi ten rap, dia chi va hotline theo dung cau truc bang CumRap.</p>
+        </div>
+        {% if cum_rap_editing_id %}
+        <a href="{{ url_for('rap.index') }}" class="btn btn-secondary">Tao moi</a>
+        {% endif %}
+    </div>
+
+    <div class="admin-grid">
+        <!-- Quản lý Cụm Rạp -->
+        {% if session.chuc_vu == 'Admin' %}
+        <section class="panel">
+            <h2>{{ 'Sửa Cum Rap' if cum_rap_form_data else 'Them Cum Rap' }}</h2>
+            <form method="post" action="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap_editing_id) if cum_rap_editing_id else url_for('rap.them_cum_rap') }}">
+                <div class="form-group">
+                    <label for="TenCumRap">Ten cum rap</label>
+                    <input id="TenCumRap" name="TenCumRap" type="text" value="{{ cum_rap_form_data.TenCumRap or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="DiaChi">Dia chi</label>
+                    <input id="DiaChi" name="DiaChi" type="text" value="{{ cum_rap_form_data.DiaChi or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="Hotline">Hotline</label>
+                    <input id="Hotline" name="Hotline" type="text" value="{{ cum_rap_form_data.Hotline or '' }}" required>
+                </div>
+                <button type="submit" class="btn">{{ 'Luu thay doi' if cum_rap_editing_id else 'Them cum rap' }}</button>
+            </form>
+        </section>
+        {% else %}
+        <section class="panel inline-style-154" >
+            <p>Chỉ Admin mới có quyền thêm/sửa Cụm rạp.<br>Bạn đang xem với quyền Quản lý rạp.</p>
+        </section>
+        {% endif %}
+
+        <section class="panel">
+            <h2>Danh sach Cum Rap</h2>
+            {% if ds_cum_rap %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma</th>
+                        <th>Ten cum rap</th>
+                        <th>Dia chi</th>
+                        <th>Hotline</th>
+                        <th>Tac vu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cum_rap in ds_cum_rap %}
+                    <tr>
+                        <td>{{ cum_rap.MaCumRap }}</td>
+                        <td><strong>{{ cum_rap.TenCumRap }}</strong></td>
+                        <td>{{ cum_rap.DiaChi }}</td>
+                        <td>{{ cum_rap.Hotline }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" class="btn btn-secondary">Sua</a>
+                                <form method="post" action="{{ url_for('rap.xoa_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" onsubmit="return confirm('Ban co chac muon xoa cum rap nay khong?');">
+                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Chua co du lieu cum rap.</p>
+            {% endif %}
+        </section>
+    </div>
+    {% elif active_section == 'loaiphong' %}
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / LoaiPhong</p>
+            <h1>Quan ly loai phong</h1>
+            <p class="section-copy">Khai bao cac loai phong nhu 2D, 3D, IMAX .</p>
+        </div>
+        {% if loai_phong_editing_id %}
+        <a href="{{ url_for('rap.index', section='loaiphong') }}" class="btn btn-secondary">Tao moi</a>
+        {% endif %}
+    </div>
+
+    <div class="admin-grid">
+        <section class="panel">
+            <h2>{{ 'Cap nhat loai phong' if loai_phong_editing_id else 'Them loai phong' }}</h2>
+            <form method="post" action="{{ url_for('rap.sua_loai_phong', ma_loai_phong=loai_phong_editing_id) if loai_phong_editing_id else url_for('rap.them_loai_phong') }}">
+                <div class="form-group">
+                    <label for="TenLoaiPhong">Ten loai phong</label>
+                    <input id="TenLoaiPhong" name="TenLoaiPhong" type="text" value="{{ loai_phong_form_data.TenLoaiPhong or '' }}" required>
+                </div>
+
+                
+
+                <button type="submit" class="btn">{{ 'Luu thay doi' if loai_phong_editing_id else 'Them loai phong' }}</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Danh sach loai phong</h2>
+            {% if ds_loai_phong %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma</th>
+                        <th>Ten loai phong</th>
+                        
+                        <th>Tac vu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loai_phong in ds_loai_phong %}
+                    <tr>
+                        <td>{{ loai_phong.MaLoaiPhong }}</td>
+                        <td><strong>{{ loai_phong.TenLoaiPhong }}</strong></td>
+                        
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('rap.sua_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" class="btn btn-secondary">Sua</a>
+                                <form method="post" action="{{ url_for('rap.xoa_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" onsubmit="return confirm('Ban co chac muon xoa loai phong nay khong?');">
+                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Chua co du lieu loai phong.</p>
+            {% endif %}
+        </section>
+    </div>
+    {% elif active_section == 'loaighe' %}
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / LoaiGhe</p>
+            <h1>Quan ly loai ghe</h1>
+            <p class="section-copy">Khai bao cac loai ghe nhu Thuong, VIP, Sweetbox .</p>
+        </div>
+        {% if loai_ghe_editing_id %}
+        <a href="{{ url_for('rap.index', section='loaighe') }}" class="btn btn-secondary">Tao moi</a>
+        {% endif %}
+    </div>
+
+    <div class="admin-grid">
+        <section class="panel">
+            <h2>{{ 'Cap nhat loai ghe' if loai_ghe_editing_id else 'Them loai ghe' }}</h2>
+            <form method="post" action="{{ url_for('rap.sua_loai_ghe', ma_loai_ghe=loai_ghe_editing_id) if loai_ghe_editing_id else url_for('rap.them_loai_ghe') }}">
+                <div class="form-group">
+                    <label for="TenLoai">Ten loai ghe</label>
+                    <input id="TenLoai" name="TenLoai" type="text" value="{{ loai_ghe_form_data.TenLoai or '' }}" required>
+                </div>
+
+                
+
+                <button type="submit" class="btn">{{ 'Luu thay doi' if loai_ghe_editing_id else 'Them loai ghe' }}</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Danh sach loai ghe</h2>
+            {% if ds_loai_ghe %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma</th>
+                        <th>Ten loai ghe</th>
+                        
+                        <th>Tac vu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loai_ghe in ds_loai_ghe %}
+                    <tr>
+                        <td>{{ loai_ghe.MaLoaiGhe }}</td>
+                        <td><strong>{{ loai_ghe.TenLoai }}</strong></td>
+                        
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('rap.sua_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" class="btn btn-secondary">Sua</a>
+                                <form method="post" action="{{ url_for('rap.xoa_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" onsubmit="return confirm('Ban co chac muon xoa loai ghe nay khong?');">
+                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Chua co du lieu loai ghe.</p>
+            {% endif %}
+        </section>
+    </div>
+    {% elif active_section == 'phongchieu' %}
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / PhongChieu</p>
+            <h1>Quan ly phong chieu</h1>
+            <p class="section-copy">Tao phong chieu gan voi cum rap va loai phong, dong thoi khai bao suc chua theo bang PhongChieu.</p>
+        </div>
+        {% if phong_chieu_editing_id %}
+        <a href="{{ url_for('rap.index', section='phongchieu') }}" class="btn btn-secondary">Tao moi</a>
+        {% endif %}
+    </div>
+
+    <div class="admin-grid">
+        <section class="panel">
+            <h2>{{ 'Cap nhat phong chieu' if phong_chieu_editing_id else 'Them phong chieu' }}</h2>
+            <form method="post" action="{{ url_for('rap.sua_phong_chieu', ma_phong=phong_chieu_editing_id) if phong_chieu_editing_id else url_for('rap.them_phong_chieu') }}">
+                <div class="form-group">
+                    <label for="TenPhong">Ten phong</label>
+                    <input id="TenPhong" name="TenPhong" type="text" value="{{ phong_chieu_form_data.TenPhong or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="MaCumRap">Cum rap</label>
+                    {% if session.chuc_vu == 'Admin' %}
+                        <select id="MaCumRap" name="MaCumRap" required>
+                            <option value="">-- Chon cum rap --</option>
+                            {% for rap in ds_cum_rap %}
+                                <option value="{{ rap.MaCumRap }}" {{ 'selected' if phong_chieu_form_data.MaCumRap == rap.MaCumRap else '' }}>
+                                    {{ rap.TenCumRap }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <select id="MaCumRap" disabled>
+                            {% for rap in ds_cum_rap %}
+                                {% if rap.MaCumRap == session.ma_cum_rap %}
+                                    <option value="{{ rap.MaCumRap }}" selected>{{ rap.TenCumRap }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                </div>
+
+
+
+                <div class="form-group">
+                    <label for="SoHang">So hang</label>
+                    <input id="SoHang" name="SoHang" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SoHang or '10' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="SoCot">So ghe moi hang</label>
+                    <input id="SoCot" name="SoCot" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SoCot or '10' }}" required>
+                </div>
+
+                <button type="submit" class="btn">{{ 'Luu thay doi' if phong_chieu_editing_id else 'Them phong chieu' }}</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Tao phong va sinh ghe</h2>
+            <form method="post" action="{{ url_for('rap.tao_phong_va_sinh_ghe') }}">
+                <div class="form-group">
+                    <label for="TenPhongAuto">Ten phong</label>
+                    <input id="TenPhongAuto" name="TenPhong" type="text" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="MaCumRapAuto">Cum rap</label>
+                    {% if session.chuc_vu == 'Admin' %}
+                        <select id="MaCumRapAuto" name="MaCumRap" required>
+                            <option value="">-- Chon cum rap --</option>
+                            {% for rap in ds_cum_rap %}
+                                <option value="{{ rap.MaCumRap }}">{{ rap.TenCumRap }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <select id="MaCumRapAuto" disabled>
+                            {% for rap in ds_cum_rap %}
+                                {% if rap.MaCumRap == session.ma_cum_rap %}
+                                    <option value="{{ rap.MaCumRap }}" selected>{{ rap.TenCumRap }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                </div>
+
+
+
+                <div class="form-group">
+                    <label for="SoHangAuto">So hang</label>
+                    <input id="SoHangAuto" name="SoHang" type="number" min="1" step="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="SoCotAuto">So ghe moi hang</label>
+                    <input id="SoCotAuto" name="SoCot" type="number" min="1" step="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="MaLoaiGheMacDinh">Loai ghe mac dinh</label>
+                    <select id="MaLoaiGheMacDinh" name="MaLoaiGheMacDinh" required>
+                        <option value="">Chon loai ghe</option>
+                        <option value="0" class="extracted-style-1037">(Phòng trống - Không sinh ghế)</option>
+                        {% for loai_ghe in ds_loai_ghe %}
+                        <option value="{{ loai_ghe.MaLoaiGhe }}">{{ loai_ghe.TenLoai }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Thêm phòng chiếu</button>
+            </form>
+        </section>
+
+        <section class="panel panel-span-2">
+            <h2>Danh sach phong chieu</h2>
+            {% if ds_phong_chieu %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma</th>
+                        <th>Ten phong</th>
+                        <th>Cum rap</th>
+
+                        <th>Kich thuoc (Hang x Cot)</th>
+                        <th>Suc chua</th>
+                        <th>Thao tac</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for phong in ds_phong_chieu %}
+                    <tr>
+                        <td>{{ phong.MaPhong }}</td>
+                        <td><strong>{{ phong.TenPhong }}</strong></td>
+                        <td>{{ phong.TenCumRap }}</td>
+                        <td>{{ phong.SoHang }} x {{ phong.SoCot }}</td>
+                        <td>{{ phong.SucChua }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button type="button" class="btn btn-secondary extracted-style-1038" onclick="showSeatMap({{ phong.MaPhong }}, '{{ phong.TenPhong }}')">Sơ đồ</button>
+                                <a href="{{ url_for('rap.sua_phong_chieu', ma_phong=phong.MaPhong) }}" class="btn btn-secondary">Sua</a>
+                                <form method="post" action="{{ url_for('rap.xoa_phong_chieu', ma_phong=phong.MaPhong) }}" onsubmit="return confirm('Ban co chac muon xoa phong chieu nay khong?');">
+                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Chua co du lieu phong chieu.</p>
+            {% endif %}
+        </section>
+    </div>
+    {% elif active_section == 'ghe' %}
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / Ghe</p>
+            <h1>Quan ly ghe</h1>
+            <p class="section-copy">Khai bao ma ghe, phong chieu va loai ghe theo dung bang Ghe, dong thoi ton trong suc chua cua phong.</p>
+        </div>
+        {% if ghe_editing_id %}
+        <a href="{{ url_for('rap.index', section='ghe') }}" class="btn btn-secondary">Tao moi</a>
+        {% endif %}
+    </div>
+
+    <div class="admin-grid">
+        <section class="panel">
+            <h2>{{ 'Cap nhat ghe' if ghe_editing_id else 'Them ghe' }}</h2>
+            <form method="post" action="{{ url_for('rap.sua_ghe', ma_ghe=ghe_editing_id) if ghe_editing_id else url_for('rap.them_ghe') }}">
+                <div class="form-group">
+                    <label for="TenGhe">Ten ghe</label>
+                    <input id="TenGhe" name="TenGhe" type="text" value="{{ ghe_form_data.TenGhe or '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="MaPhongGhe">Phong chieu</label>
+                    <select id="MaPhongGhe" name="MaPhong" required>
+                        <option value="">Chon phong chieu</option>
+                        {% for phong in ds_phong_chieu %}
+                        <option value="{{ phong.MaPhong }}" {{ 'selected' if ghe_form_data.MaPhong == phong.MaPhong else '' }}>
+                            {{ phong.TenPhong }} - {{ phong.TenCumRap }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="MaLoaiGheForm">Loai ghe</label>
+                    <select id="MaLoaiGheForm" name="MaLoaiGhe" required>
+                        <option value="">Chon loai ghe</option>
+                        {% for loai_ghe in ds_loai_ghe %}
+                        <option value="{{ loai_ghe.MaLoaiGhe }}" {{ 'selected' if ghe_form_data.MaLoaiGhe == loai_ghe.MaLoaiGhe else '' }}>
+                            {{ loai_ghe.TenLoai }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">{{ 'Luu thay doi' if ghe_editing_id else 'Them ghe' }}</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Danh sach ghe</h2>
+            <div class="filter-bar extracted-style-1039">
+                <form method="GET" action="{{ url_for('rap.index') }}" class="extracted-style-1040">
+                    <input type="hidden" name="section" value="ghe">
+                    <div class="extracted-style-1035">
+                        <label for="loc_cum_rap" class="extracted-style-1041">Cơ sở</label>
+                        <select name="loc_cum_rap" id="loc_cum_rap" class="form-control" onchange="this.form.submit()">
+                            <option value="">-- Tất cả cơ sở --</option>
+                            {% for cr in ds_cum_rap %}
+                            <option value="{{ cr.MaCumRap }}" {{ 'selected' if loc_cum_rap|string == cr.MaCumRap|string else '' }}>{{ cr.TenCumRap }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="extracted-style-1035">
+                        <label for="loc_phong" class="extracted-style-1041">Phòng chiếu</label>
+                        <select name="loc_phong" id="loc_phong" class="form-control" onchange="this.form.submit()">
+                            <option value="">-- Tất cả phòng --</option>
+                            {% for pc in ds_phong_chieu %}
+                                {% if not loc_cum_rap or pc.MaCumRap|string == loc_cum_rap|string %}
+                                <option value="{{ pc.MaPhong }}" {{ 'selected' if loc_phong|string == pc.MaPhong|string else '' }}>{{ pc.TenPhong }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn">Lọc</button>
+                    </div>
+                </form>
+            </div>
+            
+            {% if ds_ghe %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma</th>
+                        <th>Ten ghe</th>
+                        <th>Cơ sở</th>
+                        <th>Phòng chiếu</th>
+                        <th>Loai ghe</th>
+                        <th>Tac vu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ghe in ds_ghe %}
+                    <tr>
+                        <td>{{ ghe.MaGhe }}</td>
+                        <td><strong>{{ ghe.TenGhe }}</strong></td>
+                        <td>{{ ghe.TenCumRap }}</td>
+                        <td>{{ ghe.TenPhong }}</td>
+                        <td>{{ ghe.TenLoai }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('rap.sua_ghe', ma_ghe=ghe.MaGhe) }}" class="btn btn-secondary">Sua</a>
+                                <form method="post" action="{{ url_for('rap.xoa_ghe', ma_ghe=ghe.MaGhe) }}" onsubmit="return confirm('Ban co chac muon xoa ghe nay khong?');">
+                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if ghe_total_pages > 1 %}
+            <div class="inline-style-143">
+                {% if ghe_page > 1 %}
+                <a href="{{ url_for('rap.index', section='ghe', page=ghe_page - 1, loc_cum_rap=loc_cum_rap, loc_phong=loc_phong) }}" class="btn inline-style-144">Trước</a>
+                {% endif %}
+
+                {% for p_num in range(1, ghe_total_pages + 1) %}
+                {% if p_num == 1 or p_num == ghe_total_pages or (p_num >= ghe_page - 2 and p_num <= ghe_page + 2) %}
+                <a href="{{ url_for('rap.index', section='ghe', page=p_num, loc_cum_rap=loc_cum_rap, loc_phong=loc_phong) }}" class="btn" style="background: {% if p_num == ghe_page %}#e50914{% else %}rgba(255,255,255,0.1){% endif %}; padding: 0.5rem 1rem;">
+                    {{ p_num }}
+                </a>
+                {% elif p_num == ghe_page - 3 or p_num == ghe_page + 3 %}
+                <span class="extracted-style-1042">...</span>
+                {% endif %}
+                {% endfor %}
+
+                {% if ghe_page < ghe_total_pages %}
+                <a href="{{ url_for('rap.index', section='ghe', page=ghe_page + 1, loc_cum_rap=loc_cum_rap, loc_phong=loc_phong) }}" class="btn inline-style-144">Tiếp</a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <p class="empty-state">Chua co du lieu ghe.</p>
+            {% endif %}
+        </section>
+    </div>
     {% else %}
-    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">Chưa có dữ liệu phòng chiếu.</p>
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Admin / ThongKe</p>
+            <h1>Thong ke cum rap</h1>
+            <p class="section-copy">Du lieu duoc lay truc tiep tu view v_ThongKePhongTheoCumRap gom tong so phong chieu va tong suc chua cua tung cum rap.</p>
+        </div>
+    </div>
+
+    <section class="panel">
+        <h2>Tong hop theo cum rap</h2>
+        {% if ds_thong_ke_cum_rap %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Ma</th>
+                    <th>Ten cum rap</th>
+                    <th>Dia chi</th>
+                    <th>Hotline</th>
+                    <th>Tong so phong</th>
+                    <th>Tong suc chua</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for thong_ke in ds_thong_ke_cum_rap %}
+                <tr>
+                    <td>{{ thong_ke.MaCumRap }}</td>
+                    <td><strong>{{ thong_ke.TenCumRap }}</strong></td>
+                    <td>{{ thong_ke.DiaChi }}</td>
+                    <td>{{ thong_ke.Hotline }}</td>
+                    <td>{{ thong_ke.TongSoPhong }}</td>
+                    <td>{{ thong_ke.TongSucChua }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">Chua co du lieu thong ke tu view v_ThongKePhongTheoCumRap.</p>
+        {% endif %}
+    </section>
     {% endif %}
 </div>
+
+
+<!-- Seat Map Modal -->
+<div id="seatMapModal" class="modal extracted-style-1043">
+    <div class="modal-content extracted-style-1044">
+        <span class="close extracted-style-1045" onclick="closeSeatMap()">&times;</span>
+        <h2 id="seatMapTitle" class="extracted-style-1046">Sơ đồ phòng chiếu</h2>
+        
+        <div class="extracted-style-1047">
+            <button id="btnToggleEdit" class="btn btn-secondary extracted-style-1048" onclick="toggleEditMode()">Bật chế độ chỉnh sửa</button>
+            <button id="btnSaveMap" class="btn btn-primary extracted-style-1049" onclick="saveSeatMap()">Lưu sơ đồ</button>
+        </div>
+
+        <div class="extracted-style-1050">
+            <div class="extracted-style-1051">
+                <span class="extracted-style-1052">MÀN HÌNH</span>
+            </div>
+        </div>
+
+        <div id="seatGridContainer" class="extracted-style-1053">
+            <div id="seatGrid" class="extracted-style-1054">
+                <!-- Seats will be injected here -->
+            </div>
+        </div>
+        
+        <div class="extracted-style-1055">
+            <div class="extracted-style-1056"><div class="extracted-style-1057"></div><span>Thường</span></div>
+            <div class="extracted-style-1056"><div class="extracted-style-1058"></div><span>VIP</span></div>
+            <div class="extracted-style-1056"><div class="extracted-style-1059"></div><span>Sweetbox</span></div>
+            <div class="extracted-style-1056"><div class="extracted-style-1060"></div><span>Lối đi / Trống</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentMaPhong = null;
+let isEditMode = false;
+let originalSeats = {}; // Map of original seat data
+let seatChanges = {}; // Map of changes to send to server
+
+function toggleEditMode() {
+    isEditMode = !isEditMode;
+    document.getElementById('btnToggleEdit').innerText = isEditMode ? 'Tắt chỉnh sửa' : 'Bật chế độ chỉnh sửa';
+    document.getElementById('btnToggleEdit').style.background = isEditMode ? '#ef4444' : '';
+    document.getElementById('btnSaveMap').style.display = isEditMode ? 'inline-block' : 'none';
+    
+    const blankSpaces = document.querySelectorAll('.seat-blank');
+    blankSpaces.forEach(el => {
+        el.style.border = isEditMode ? '1px dashed #666' : 'none';
+        el.style.color = isEditMode ? '#666' : 'transparent';
+        el.style.cursor = isEditMode ? 'pointer' : 'default';
+    });
+}
+
+function closeSeatMap() {
+    document.getElementById('seatMapModal').style.display = 'none';
+    isEditMode = false;
+    seatChanges = {};
+}
+
+function applySeatStyle(seatDiv, loaiGhe) {
+    if(loaiGhe == 1) { // Thường
+        seatDiv.style.background = 'rgba(245, 158, 11, 0.15)';
+        seatDiv.style.border = '1px solid #f59e0b';
+        seatDiv.style.color = '#f59e0b';
+    } else if(loaiGhe == 2) { // VIP
+        seatDiv.style.background = 'rgba(236, 72, 153, 0.15)';
+        seatDiv.style.border = '1px solid #ec4899';
+        seatDiv.style.color = '#ec4899';
+    } else if(loaiGhe == 3) { // Sweetbox
+        seatDiv.style.background = 'rgba(139, 92, 246, 0.15)';
+        seatDiv.style.border = '1px solid #8b5cf6';
+        seatDiv.style.color = '#8b5cf6';
+    } else { // Blank
+        seatDiv.style.background = 'transparent';
+        seatDiv.style.border = isEditMode ? '1px dashed #666' : 'none';
+        seatDiv.style.color = isEditMode ? '#666' : 'transparent';
+    }
+}
+
+function handleSeatClick(gheName) {
+    if(!isEditMode) return;
+    
+    let currentState = seatChanges[gheName] || originalSeats[gheName] || { MaLoaiGhe: 0 };
+    let currentType = parseInt(currentState.MaLoaiGhe) || 0;
+    
+    // Cycle: 0 (Blank) -> 1 (Thường) -> 2 (VIP) -> 3 (Sweetbox) -> 0
+    let nextType = (currentType + 1) % 4;
+    
+    let parts = gheName.split('_'); // gheName is now "Hang_Cot" like "J_3"
+    let rowChar = parts[0];
+    let colNum = parseInt(parts[1]);
+    let nextSeatId = 'seat-' + rowChar + '_' + (colNum + 1);
+    let nextSeat = document.getElementById(nextSeatId);
+    
+    if (nextType === 3 && !nextSeat) {
+        nextType = 0; // Cannot make Sweetbox on the last column
+    }
+    
+    // Update state
+    if (!seatChanges[gheName]) {
+        seatChanges[gheName] = { ...currentState };
+    }
+    seatChanges[gheName].MaLoaiGhe = nextType;
+    
+    // Update UI
+    let seatDiv = document.getElementById('seat-' + gheName);
+    applySeatStyle(seatDiv, nextType);
+    
+    if (currentType === 3 && nextType !== 3) {
+        seatDiv.style.gridColumn = 'span 1';
+        if (nextSeat) nextSeat.style.display = 'flex';
+    }
+    
+    if (nextType === 3) {
+        seatDiv.style.gridColumn = 'span 2';
+        if (nextSeat) {
+            nextSeat.style.display = 'none';
+            // Mark next seat as deleted
+            let nextGheName = rowChar + '_' + (colNum + 1);
+            let nextCurrentState = seatChanges[nextGheName] || originalSeats[nextGheName] || { MaLoaiGhe: 0 };
+            if (!seatChanges[nextGheName]) {
+                seatChanges[nextGheName] = { ...nextCurrentState };
+            }
+            seatChanges[nextGheName].MaLoaiGhe = 0;
+            nextSeat.innerText = '';
+            nextSeat.classList.add('seat-blank');
+            applySeatStyle(nextSeat, 0);
+        }
+    }
+    
+    if (nextType === 0) {
+        seatDiv.innerText = '';
+        seatDiv.classList.add('seat-blank');
+    } else {
+        seatDiv.classList.remove('seat-blank');
+    }
+    
+    recalculateNames(rowChar);
+}
+
+function recalculateNames(rowChar) {
+    let seatCount = 1;
+    let colNum = 1;
+    while (true) {
+        let coord = rowChar + '_' + colNum;
+        let cell = document.getElementById('seat-' + coord);
+        if (!cell) break; // Reached end of row
+        
+        let state = seatChanges[coord] || originalSeats[coord] || { MaLoaiGhe: 0 };
+        let type = state.MaLoaiGhe;
+        let isHidden = cell.style.display === 'none';
+        
+        // If it's a real seat and not hidden by a Sweetbox
+        if (type !== 0 && !isHidden) {
+            let expectedName = rowChar + seatCount;
+            // Update UI
+            cell.innerText = expectedName;
+            cell.title = expectedName;
+            
+            // Update state
+            if (!seatChanges[coord]) {
+                seatChanges[coord] = { ...state };
+            }
+            seatChanges[coord].TenGhe = expectedName;
+            
+            seatCount++;
+        } else if (type === 0 && isEditMode) {
+            // Show coordinate in blank cells in edit mode
+            cell.innerText = coord.replace('_', ''); 
+            cell.title = coord.replace('_', '');
+        } else if (type === 0) {
+            cell.innerText = '';
+        }
+        colNum++;
+    }
+}
+
+function showSeatMap(maPhong, tenPhong) {
+    currentMaPhong = maPhong;
+    isEditMode = false;
+    seatChanges = {};
+    originalSeats = {};
+    
+    document.getElementById('seatMapTitle').innerText = "Sơ đồ phòng " + tenPhong;
+    document.getElementById('btnToggleEdit').innerText = 'Bật chế độ chỉnh sửa';
+    document.getElementById('btnToggleEdit').style.background = '';
+    document.getElementById('btnSaveMap').style.display = 'none';
+    
+    // Fetch seat map data
+    fetch('/api/v1/phongchieu/' + maPhong + '/sodo')
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const phong = data.data.phong;
+                const gheList = data.data.ghe;
+                const grid = document.getElementById('seatGrid');
+                grid.style.gridTemplateColumns = 'repeat(' + phong.SoCot + ', 35px)';
+                grid.innerHTML = '';
+                
+                gheList.forEach(g => {
+                    originalSeats[g.Hang + '_' + g.Cot] = g;
+                });
+                
+                let skipNext = false;
+                for(let r = 1; r <= phong.SoHang; r++) {
+                    let charRow = r <= 26 ? String.fromCharCode(64 + r) : 'A' + String.fromCharCode(64 + r - 26);
+                    skipNext = false;
+                    for(let c = 1; c <= phong.SoCot; c++) {
+                        let gheCoord = charRow + '_' + c;
+                        let gheInfo = originalSeats[gheCoord];
+                        
+                        let seatDiv = document.createElement('div');
+                        seatDiv.id = 'seat-' + gheCoord;
+                        seatDiv.style.display = 'flex';
+                        seatDiv.style.alignItems = 'center';
+                        seatDiv.style.justifyContent = 'center';
+                        seatDiv.style.fontSize = '10px';
+                        seatDiv.style.fontWeight = 'bold';
+                        seatDiv.style.borderRadius = '4px 4px 10px 10px';
+                        seatDiv.style.width = '100%'; // Grid will control width
+                        seatDiv.style.height = '35px';
+                        seatDiv.style.cursor = 'pointer';
+                        seatDiv.style.userSelect = 'none';
+                        
+                        if (skipNext) {
+                            seatDiv.style.display = 'none';
+                            skipNext = false;
+                        }
+                        
+                        if(gheInfo) {
+                            seatDiv.innerText = gheInfo.TenGhe;
+                            applySeatStyle(seatDiv, gheInfo.MaLoaiGhe);
+                            seatDiv.title = gheInfo.TenGhe;
+                            if (gheInfo.MaLoaiGhe == 3) {
+                                seatDiv.style.gridColumn = 'span 2';
+                                skipNext = true;
+                            }
+                        } else {
+                            seatDiv.innerText = gheCoord.replace('_', '');
+                            seatDiv.title = gheCoord.replace('_', '');
+                            seatDiv.classList.add('seat-blank');
+                            applySeatStyle(seatDiv, 0);
+                        }
+                        
+                        seatDiv.onclick = () => handleSeatClick(gheCoord);
+                        grid.appendChild(seatDiv);
+                    }
+                }
+                
+                document.getElementById('seatMapModal').style.display = 'block';
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi kết nối API');
+        });
+}
+
+function saveSeatMap() {
+    let updates = [];
+    let adds = [];
+    let deletes = [];
+    
+    for (let tenGhe in seatChanges) {
+        let changed = seatChanges[tenGhe];
+        let original = originalSeats[tenGhe];
+        let newType = changed.MaLoaiGhe;
+        
+        let finalTenGhe = changed.TenGhe || (original ? original.TenGhe : tenGhe.replace('_', ''));
+        let parts = tenGhe.split('_');
+        let hang = parts[0];
+        let cot = parseInt(parts[1]);
+
+        if (original) {
+            if (newType === 0) {
+                deletes.push({ MaGhe: original.MaGhe });
+            } else if (newType !== original.MaLoaiGhe || finalTenGhe !== original.TenGhe) {
+                updates.push({ MaGhe: original.MaGhe, MaLoaiGhe: newType, TenGhe: finalTenGhe });
+            }
+        } else {
+            if (newType !== 0) {
+                adds.push({ TenGhe: finalTenGhe, MaLoaiGhe: newType, Hang: hang, Cot: cot });
+            }
+        }
+    }
+    
+    if (updates.length === 0 && adds.length === 0 && deletes.length === 0) {
+        alert("Chưa có thay đổi nào để lưu!");
+        return;
+    }
+    
+    if (!confirm("Lưu các thay đổi này vào CSDL?")) return;
+    
+    fetch('/api/v1/phongchieu/' + currentMaPhong + '/capnhat_sodo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates, adds, deletes })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            alert('Lưu sơ đồ thành công!');
+            // Reload the map
+            const tenPhong = document.getElementById('seatMapTitle').innerText.replace("Sơ đồ phòng ", "");
+            showSeatMap(currentMaPhong, tenPhong);
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    })
+    .catch(e => {
+        console.error(e);
+        alert('Lỗi kết nối API');
+    });
+}
+
+window.onclick = function(event) {
+    if (event.target == document.getElementById('seatMapModal')) {
+        closeSeatMap();
+    }
+}
+</script>
 {% endblock %}

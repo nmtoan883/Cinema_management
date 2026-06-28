@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}Cấu hình Giá Vé - Cinema Management{% endblock %}
+
+{% block content %}
+<div class="header-banner">
+    <h2><i class="fas fa-tags"></i> CẤU HÌNH GIÁ VÉ & PHỤ THU</h2>
+    <p>Quản lý mức giá vé cơ bản và các khoản phụ thu (Ngày lễ, Định dạng chiếu, Loại ghế).</p>
+</div>
+
+
+
+<div class="content-section">
+    
+    <div class="tabs">
+        <button class="tab-link current" data-tab="giave">Giá Vé Cơ Bản</button>
+        <button class="tab-link" data-tab="loaiphong">Phụ Thu Phòng Chiếu</button>
+        <button class="tab-link" data-tab="loaighe">Phụ Thu Loại Ghế</button>
+        <button class="tab-link" data-tab="ngayle">Ngày Lễ Tết</button>
+    </div>
+
+    <!-- TAB 1: Giá vé cơ bản -->
+    <div id="giave" class="tab-content current">
+        <div class="extracted-style-1014">
+            <button class="btn btn-primary" onclick="openModal('giaveModal', 'Thêm Giá Vé Cơ Bản', '/giave/giave_coban/add')">
+                <i class="fas fa-plus"></i> Thêm Khung Giá
+            </button>
+        </div>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Khung Giờ</th>
+                    <th>Loại Ngày</th>
+                    <th>Giá Cơ Bản (VNĐ)</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gv in ds_gia_ve %}
+                <tr>
+                    <td>{{ gv.MaGiaVe }}</td>
+                    <td>{{ gv.KhungGio }}</td>
+                    <td>{{ gv.LoaiNgay }}</td>
+                    <td>{{ "{:,.0f}".format(gv.GiaCoBan) }}đ</td>
+                    <td>
+                        <button class="btn btn-primary extracted-style-1020" onclick="openEditGiaVe('{{ gv.MaGiaVe }}', '{{ gv.KhungGio }}', '{{ gv.LoaiNgay }}', '{{ gv.GiaCoBan }}')">Sửa</button>
+                        <form action="{{ url_for('gia_ve.delete_giave', id=gv.MaGiaVe) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mức giá vé này không?');" class="extracted-style-1021">
+                            <button type="submit" class="btn btn-danger extracted-style-1020">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- TAB 2: Phụ thu phòng -->
+    <div id="loaiphong" class="tab-content">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Loại Phòng Chiếu</th>
+                    <th>Phụ Thu (VNĐ)</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lp in ds_loai_phong %}
+                <tr>
+                    <td>{{ lp.MaLoaiPhong }}</td>
+                    <td>{{ lp.TenLoaiPhong }}</td>
+                    <td>{{ "{:,.0f}".format(lp.PhuThu) }}đ</td>
+                    <td>
+                        <button class="btn btn-primary extracted-style-1020" onclick="openEditPhuThu('phuThuModal', 'Sửa Phụ Thu Phòng', '/giave/loaiphong/edit/{{ lp.MaLoaiPhong }}', '{{ lp.PhuThu }}')">Sửa Phụ Thu</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="extracted-style-1026">Ghi chú: Việc đổi định dạng chiếu cần can thiệp hệ thống phòng chiếu cốt lõi. Ở đây chỉ hỗ trợ cấu hình giá Phụ Thu.</p>
+    </div>
+
+    <!-- TAB 3: Phụ thu ghế -->
+    <div id="loaighe" class="tab-content">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Loại Ghế</th>
+                    <th>Phụ Thu (VNĐ)</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lg in ds_loai_ghe %}
+                <tr>
+                    <td>{{ lg.MaLoaiGhe }}</td>
+                    <td>{{ lg.TenLoai }}</td>
+                    <td>{{ "{:,.0f}".format(lg.PhuThu) }}đ</td>
+                    <td>
+                        <button class="btn btn-primary extracted-style-1020" onclick="openEditPhuThu('phuThuModal', 'Sửa Phụ Thu Ghế', '/giave/loaighe/edit/{{ lg.MaLoaiGhe }}', '{{ lg.PhuThu }}')">Sửa Phụ Thu</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="extracted-style-1026">Ghi chú: Ở đây chỉ hỗ trợ cấu hình giá Phụ Thu cho từng loại ghế.</p>
+    </div>
+
+    <!-- TAB 4: Ngày Lễ -->
+    <div id="ngayle" class="tab-content">
+        <div class="extracted-style-1014">
+            <button class="btn btn-primary" onclick="openModal('ngayleModal', 'Thêm Ngày Lễ (Tính Phụ Thu)', '/giave/ngayle/add')">
+                <i class="fas fa-plus"></i> Thêm Ngày Lễ
+            </button>
+        </div>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Tên Ngày Lễ</th>
+                    <th>Phụ Thu (VNĐ)</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nl in ds_ngay_le %}
+                <tr>
+                    <td>{{ nl.Ngay }}</td>
+                    <td>{{ nl.TenNgayLe }}</td>
+                    <td>{{ "{:,.0f}".format(nl.PhuThu) }}đ</td>
+                    <td>
+                        <form action="{{ url_for('gia_ve.delete_ngayle', id=nl.MaNgayLe) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa ngày lễ này không?');" class="extracted-style-1021">
+                            <button type="submit" class="btn btn-danger extracted-style-1020">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Giá Vé Cơ Bản -->
+<div id="giaveModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="giaveModalTitle">Thêm Giá Vé Cơ Bản</h3>
+            <span class="close" onclick="closeModal('giaveModal')">&times;</span>
+        </div>
+        <form id="giaveForm" action="" method="POST">
+            <div class="form-group">
+                <label>Khung Giờ (VD: 08:00 - 12:00) <span class="extracted-style-1022">*</span>:</label>
+                <input type="text" name="khungGio" id="khungGio" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Loại Ngày (Thường / Cuối Tuần) <span class="extracted-style-1022">*</span>:</label>
+                <input type="text" name="loaiNgay" id="loaiNgay" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Giá Cơ Bản (VNĐ) <span class="extracted-style-1022">*</span>:</label>
+                <input type="number" name="giaCoBan" id="giaCoBan" class="form-control" required min="0" step="1000">
+            </div>
+            <div class="extracted-style-1024">
+                <button type="button" class="btn extracted-style-1025" onclick="closeModal('giaveModal')">Hủy</button>
+                <button type="submit" class="btn btn-success">Lưu Thay Đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Phụ Thu Chung -->
+<div id="phuThuModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="phuThuModalTitle">Sửa Phụ Thu</h3>
+            <span class="close" onclick="closeModal('phuThuModal')">&times;</span>
+        </div>
+        <form id="phuThuForm" action="" method="POST">
+            <div class="form-group">
+                <label>Mức Phụ Thu (VNĐ) <span class="extracted-style-1022">*</span>:</label>
+                <input type="number" name="phuThu" id="phuThu" class="form-control" required min="0" step="1000">
+            </div>
+            <div class="extracted-style-1024">
+                <button type="button" class="btn extracted-style-1025" onclick="closeModal('phuThuModal')">Hủy</button>
+                <button type="submit" class="btn btn-success">Lưu Cập Nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Ngày Lễ -->
+<div id="ngayleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="ngayleModalTitle">Thêm Ngày Lễ</h3>
+            <span class="close" onclick="closeModal('ngayleModal')">&times;</span>
+        </div>
+        <form id="ngayleForm" action="" method="POST">
+            <div class="form-group">
+                <label>Tên Ngày Lễ (VD: Lễ Quốc Khánh) <span class="extracted-style-1022">*</span>:</label>
+                <input type="text" name="tenNgayLe" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Ngày (YYYY-MM-DD) <span class="extracted-style-1022">*</span>:</label>
+                <input type="date" name="ngay" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Mức Phụ Thu (VNĐ) <span class="extracted-style-1022">*</span>:</label>
+                <input type="number" name="phuThu" class="form-control" required min="0" step="1000" value="20000">
+            </div>
+            <div class="extracted-style-1024">
+                <button type="button" class="btn extracted-style-1025" onclick="closeModal('ngayleModal')">Hủy</button>
+                <button type="submit" class="btn btn-success">Lưu Ngày Lễ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Tab Script
+    document.querySelectorAll('.tab-link').forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active classes
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('current'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('current'));
+            
+            // Add active classes
+            button.classList.add('current');
+            document.getElementById(button.dataset.tab).classList.add('current');
+        });
+    });
+
+    // Check URL Hash for Tab State
+    if(window.location.hash) {
+        let hash = window.location.hash.substring(1);
+        let tab = document.querySelector('.tab-link[data-tab="' + hash + '"]');
+        if(tab) tab.click();
+    }
+
+    // Modal Generic Scripts
+    function openModal(modalId, title, actionUrl) {
+        document.getElementById(modalId).style.display = "block";
+        document.getElementById(modalId + "Title").innerText = title;
+        document.getElementById(modalId.replace('Modal', 'Form')).action = actionUrl;
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+    function openEditGiaVe(id, khung, loai, gia) {
+        openModal('giaveModal', 'Sửa Giá Vé Cơ Bản', '/giave/giave_coban/edit/' + id);
+        document.getElementById('khungGio').value = khung;
+        document.getElementById('loaiNgay').value = loai;
+        document.getElementById('giaCoBan').value = gia;
+    }
+
+    function openEditPhuThu(modalId, title, actionUrl, phuthu) {
+        openModal(modalId, title, actionUrl);
+        document.getElementById('phuThu').value = phuthu;
+    }
+
+    // Close Modals on outside click
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('table.table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
+            },
+            "pageLength": 10,
+            "lengthMenu": [5, 10, 25, 50],
+            "ordering": false
+        });
+    });
+</script>
+{% endblock %}

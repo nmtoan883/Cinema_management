@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card inline-style-115" >
+    <h2 class="inline-style-121" >Thêm Món (Bắp/Nước) Mới</h2>
+    
+    <form action="/khachhang/dichvu/them" method="POST">
+        <div class="form-group">
+            <label>Tên Món (*)</label>
+            <input type="text" name="ten_dich_vu" placeholder="Ví dụ: Combo 2 Bắp 1 Nước" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Giá Bán (VNĐ) (*)</label>
+            <input type="number" name="gia_ban" placeholder="Ví dụ: 85000" min="0" required>
+        </div>
+
+        <div class="inline-style-118" >
+            <button type="submit" class="btn inline-style-122" >Thêm Món Mới</button>
+            <a href="/khachhang" class="btn inline-style-120" >Hủy Bỏ</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

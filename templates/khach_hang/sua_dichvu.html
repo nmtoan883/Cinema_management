@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card inline-style-115" >
+    <h2 class="inline-style-116" >Cập Nhật Giá Bán</h2>
+    
+    <form action="/khachhang/dichvu/sua/{{ dich_vu.MaDichVu }}" method="POST">
+        <div class="form-group">
+            <label>Tên Món (Không được sửa)</label>
+            <input class="inline-style-117" type="text" value="{{ dich_vu.TenDichVu }}" disabled >
+        </div>
+        
+        <div class="form-group">
+            <label>Giá Bán Mới (VNĐ) (*)</label>
+            <input type="number" name="gia_ban" value="{{ dich_vu.GiaBan }}" min="0" required>
+        </div>
+
+        <div class="inline-style-118" >
+            <button type="submit" class="btn inline-style-119" >Lưu Thay Đổi</button>
+            <a href="/khachhang" class="btn inline-style-120" >Hủy Bỏ</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

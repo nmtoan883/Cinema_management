@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card extracted-style-1002">
+    <h2 class="extracted-style-1003"><i class="fas fa-id-card"></i> Hồ Sơ Cá Nhân</h2>
+    
+    <div class="extracted-style-1004">
+        <div class="extracted-style-1005">
+            <h3>Thông tin tài khoản</h3>
+            <p><strong>Họ tên:</strong> {{ user.HoTen }}</p>
+            <p><strong>Số điện thoại:</strong> {{ user.SDT }}</p>
+            <p><strong>Email:</strong> {{ user.Email }}</p>
+        </div>
+        <div class="extracted-style-1005">
+            <h3>Thành viên</h3>
+            <p><strong>Hạng:</strong> <span class="extracted-style-1000">{{ user.TenHang }}</span></p>
+            <p><strong>Điểm tích lũy:</strong> {{ user.DiemTichLuy }} điểm</p>
+            <p><strong>Ưu đãi hạng:</strong> {{ user.UuDai }}</p>
+        </div>
+    </div>
+
+    <h3 class="extracted-style-1006">Lịch sử đặt vé</h3>
+    {% if history %}
+    <table class="table table-striped table-bordered extracted-style-1007">
+        <thead>
+            <tr>
+                <th>Mã HĐ</th>
+                <th>Phim</th>
+                <th>Suất chiếu</th>
+                <th>Phòng & Ghế</th>
+                <th>Tổng Tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+            <tr>
+                <td>#{{ h.MaHoaDon }}</td>
+                <td><strong>{{ h.TenPhim }}</strong></td>
+                <td>{{ h.GioBatDau }}</td>
+                <td>{{ h.TenPhong }} - Ghế: {{ h.DanhSachGhe }}</td>
+                <td class="extracted-style-1008">{{ "{:,.0f}".format(h.TongTien) }}đ</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="extracted-style-1009">Bạn chưa mua vé nào.</p>
+    {% endif %}
+</div>
+{% endblock %}

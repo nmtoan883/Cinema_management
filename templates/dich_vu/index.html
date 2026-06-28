@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản lý Bắp Nước - Cinema Management{% endblock %}
+
+{% block content %}
+<div class="header-banner">
+    <h2><i class="fas fa-popcorn"></i> QUẢN LÝ BẮP NƯỚC (DỊCH VỤ)</h2>
+    <p>Quản lý các mặt hàng bán kèm như bắp, nước ngọt, combo...</p>
+</div>
+
+
+
+<div class="content-section">
+    <!-- Nút thêm -->
+    <div class="extracted-style-1014">
+        <button class="btn btn-primary" onclick="openAddModal()">
+            <i class="fas fa-plus"></i> Thêm Dịch Vụ Mới
+        </button>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <table id="dichVuTable" class="table table-striped table-bordered extracted-style-1015">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Hình ảnh</th>
+                <th>Tên Dịch Vụ</th>
+                <th>Giá Bán</th>
+                <th>Số Lượng Tồn</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dv in dich_vu_list %}
+            <tr>
+                <td>{{ dv.MaDichVu }}</td>
+                <td class="extracted-style-1016">
+                    {% if dv.HinhAnh %}
+                    <img src="{{ dv.HinhAnh }}" alt="{{ dv.TenDichVu }}" class="extracted-style-1017">
+                    {% else %}
+                    <div class="extracted-style-1018">
+                        <i class="fas fa-image extracted-style-1019"></i>
+                    </div>
+                    {% endif %}
+                </td>
+                <td><strong>{{ dv.TenDichVu }}</strong></td>
+                <td>{{ "{:,.0f}".format(dv.GiaBan) }} VNĐ</td>
+                <td>{{ dv.SoLuongTon }}</td>
+                <td>
+                    <button class="btn btn-primary extracted-style-1020" onclick="openEditModal('{{ dv.MaDichVu }}', '{{ dv.TenDichVu }}', '{{ dv.GiaBan }}', '{{ dv.SoLuongTon }}', '{{ dv.HinhAnh }}')">Sửa</button>
+                    <form action="{{ url_for('dich_vu.delete', id=dv.MaDichVu) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa dịch vụ này không?');" class="extracted-style-1021">
+                        <button type="submit" class="btn btn-danger extracted-style-1020">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Thêm/Sửa Dịch Vụ -->
+<div id="dichVuModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Thêm Dịch Vụ Mới</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        
+        <form id="dichVuForm" action="{{ url_for('dich_vu.add') }}" method="POST">
+            <div class="form-group">
+                <label>Tên Dịch Vụ <span class="extracted-style-1022">*</span>:</label>
+                <input type="text" name="tenDichVu" id="tenDichVu" class="form-control" required placeholder="VD: Combo Couple">
+            </div>
+            
+            <div class="form-group">
+                <label>Giá Bán (VNĐ) <span class="extracted-style-1022">*</span>:</label>
+                <input type="number" name="giaBan" id="giaBan" class="form-control" required min="0" step="1000" placeholder="VD: 110000">
+            </div>
+            
+            <div class="form-group">
+                <label>Số Lượng Tồn Kho:</label>
+                <input type="number" name="soLuongTon" id="soLuongTon" class="form-control" value="100" min="0">
+                <small class="extracted-style-1023">Nếu rạp không quản lý tồn kho bắp nước, hãy để mặc định số lượng lớn.</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Hình Ảnh (Link URL):</label>
+                <input type="url" name="hinhAnh" id="hinhAnh" class="form-control" placeholder="https://example.com/image.jpg">
+            </div>
+            
+            <div class="extracted-style-1024">
+                <button type="button" class="btn extracted-style-1025" onclick="closeModal()">Hủy</button>
+                <button type="submit" class="btn btn-success" id="btnSubmit">Lưu Dịch Vụ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('dichVuModal');
+    const form = document.getElementById('dichVuForm');
+    const modalTitle = document.getElementById('modalTitle');
+
+    function openAddModal() {
+        modalTitle.innerText = "Thêm Dịch Vụ Mới";
+        form.action = "{{ url_for('dich_vu.add') }}";
+        
+        document.getElementById('tenDichVu').value = '';
+        document.getElementById('giaBan').value = '';
+        document.getElementById('soLuongTon').value = '100';
+        document.getElementById('hinhAnh').value = '';
+        
+        modal.style.display = "block";
+    }
+
+    function openEditModal(id, ten, gia, sl, hinhanh) {
+        modalTitle.innerText = "Cập nhật Dịch Vụ";
+        form.action = "/dichvu/edit/" + id;
+        
+        document.getElementById('tenDichVu').value = ten;
+        document.getElementById('giaBan').value = gia;
+        document.getElementById('soLuongTon').value = sl;
+        document.getElementById('hinhAnh').value = (hinhanh !== 'None' && hinhanh !== 'null') ? hinhanh : '';
+        
+        modal.style.display = "block";
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#dichVuTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
+            },
+            "pageLength": 10,
+            "lengthMenu": [5, 10, 25, 50],
+            "ordering": false
+        });
+    });
+</script>
+{% endblock %}

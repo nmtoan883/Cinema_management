@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h1>🔞 Thêm Mốc Giới Hạn Độ Tuổi Mới</h1>
+
+    <form method="POST">
+        <div class="form-group">
+            <label>Ký Hiệu Độ Tuổi (VD: T21, NC16...)</label>
+            <input type="text" name="ky_hieu" required>
+        </div>
+
+        <div class="form-group">
+            <label>Mô Tả Chi Tiết Quyết Định</label>
+            <textarea name="mo_ta" rows="3" placeholder="VD: Phim chỉ dành cho khán giả từ 21 tuổi trở lên..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn inline-style-152" >💾 Lưu Mốc Độ Tuổi</button>
+        <a href="/phim/gioi-han" class="btn inline-style-153" >Quay Lại</a>
+    </form>
+</div>
+{% endblock %}
