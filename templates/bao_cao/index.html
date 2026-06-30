@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="margin-top: 20px;">
+    <h2>Báo Cáo Phân Tích Doanh Thu</h2>
+    <p>Thống kê doanh thu theo phim, cụm rạp hoặc khoảng thời gian để phục vụ Ban Giám Đốc.</p>
+
+    <form method="get" class="form-group" style="display:flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 20px;">
+        <div>
+            <label for="from_date">Từ ngày</label>
+            <input type="date" id="from_date" name="from_date" value="{{ from_date }}" class="form-control">
+        </div>
+        <div>
+            <label for="to_date">Đến ngày</label>
+            <input type="date" id="to_date" name="to_date" value="{{ to_date }}" class="form-control">
+        </div>
+        <div>
+            <label for="group_by">Nhóm theo</label>
+            <select id="group_by" name="group_by" class="form-control">
+                <option value="phim" {% if group_by == 'phim' %}selected{% endif %}>Phim</option>
+                <option value="cumrap" {% if group_by == 'cumrap' %}selected{% endif %}>Cụm rạp</option>
+                <option value="thoigian" {% if group_by == 'thoigian' %}selected{% endif %}>Khoảng thời gian</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Xem báo cáo</button>
+    </form>
+
+    <div class="card" style="margin-bottom: 20px; background: #f8f9fa;">
+        <h3>Tóm tắt</h3>
+        <p><strong>Từ:</strong> {{ from_date }} <strong>Đến:</strong> {{ to_date }}</p>
+        <p><strong>Tổng vé bán:</strong> {{ summary.tong_ve }}</p>
+        <p><strong>Tổng doanh thu:</strong> {{ "{:,.0f}".format(summary.tong_doanh_thu) }}đ</p>
+    </div>
+
+    <table class="table" id="report-table">
+        <thead>
+            <tr>
+                <th>Nhóm</th>
+                <th>Số vé</th>
+                <th>Doanh thu</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in report_data %}
+            <tr {% if row.Nhom == 'TỔNG CỘNG' %}style="font-weight: bold; background: #fff3cd;"{% endif %}>
+                <td>{{ row.Nhom }}</td>
+                <td>{{ row.SoVe }}</td>
+                <td>{{ "{:,.0f}".format(row.DoanhThu) }}đ</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">Không có dữ liệu trong khoảng thời gian này.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function () {
+    $('#report-table').DataTable({
+        paging: false,
+        searching: false,
+        info: false,
+        order: [[2, 'desc']]
+    });
+});
+</script>
+{% endblock %}
