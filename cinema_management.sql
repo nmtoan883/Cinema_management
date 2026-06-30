@@ -36,7 +36,8 @@ CREATE TABLE PHIM (
     TrailerURL VARCHAR(500),
     MaDaoDien INT,
     FOREIGN KEY (MaDaoDien) REFERENCES DAODIEN(MaDaoDien) ON DELETE SET NULL,
-    FOREIGN KEY (MaGioiHan) REFERENCES GIOIHAN_DOTUOI(MaGioiHan) ON DELETE SET NULL
+    FOREIGN KEY (MaGioiHan) REFERENCES GIOIHAN_DOTUOI(MaGioiHan) ON DELETE SET NULL,
+    CONSTRAINT CK_Phim_ThoiLuong CHECK (ThoiLuong > 0)
 );
 
 CREATE TABLE PHIM_THELOAI (
@@ -54,6 +55,57 @@ CREATE TABLE PHIM_DIENVIEN (
     FOREIGN KEY (MaPhim) REFERENCES PHIM(MaPhim) ON DELETE CASCADE,
     FOREIGN KEY (MaDienVien) REFERENCES DIENVIEN(MaDienVien) ON DELETE CASCADE
 );
+
+-- Hệ thống chỉ mục (Indexing) cho Phim & Thể loại
+CREATE INDEX idx_phim_ten ON PHIM(TenPhim);
+CREATE INDEX idx_theloai_ten ON THELOAI(TenTheLoai);
+
+-- Bảng lưu vết (Audit Logging) hệ thống
+CREATE TABLE Log_HeThong (
+    MaLog INT AUTO_INCREMENT PRIMARY KEY,
+    ThaoTac VARCHAR(50) NOT NULL,
+    MaPhim INT,
+    TenPhimCu VARCHAR(255),
+    TenPhimMoi VARCHAR(255),
+    NguoiThucHien VARCHAR(100),
+    ThoiGian DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ChiTiet TEXT
+);
+
+DELIMITER $$
+
+CREATE TRIGGER trg_Phim_AfterUpdate
+AFTER UPDATE ON PHIM
+FOR EACH ROW
+BEGIN
+    INSERT INTO Log_HeThong (ThaoTac, MaPhim, TenPhimCu, TenPhimMoi, NguoiThucHien, ChiTiet)
+    VALUES (
+        'UPDATE', 
+        OLD.MaPhim, 
+        OLD.TenPhim, 
+        NEW.TenPhim, 
+        IFNULL(@changed_by, USER()), 
+        CONCAT('Thay đổi thời lượng: ', OLD.ThoiLuong, ' -> ', NEW.ThoiLuong, 
+               ', Ngày khởi chiếu: ', IFNULL(OLD.NgayKhoiChieu, 'NULL'), ' -> ', IFNULL(NEW.NgayKhoiChieu, 'NULL'))
+    );
+END$$
+
+CREATE TRIGGER trg_Phim_AfterDelete
+AFTER DELETE ON PHIM
+FOR EACH ROW
+BEGIN
+    INSERT INTO Log_HeThong (ThaoTac, MaPhim, TenPhimCu, TenPhimMoi, NguoiThucHien, ChiTiet)
+    VALUES (
+        'DELETE', 
+        OLD.MaPhim, 
+        OLD.TenPhim, 
+        NULL, 
+        IFNULL(@changed_by, USER()), 
+        CONCAT('Xóa phim: ', OLD.TenPhim, ', Thời lượng: ', OLD.ThoiLuong)
+    );
+END$$
+
+DELIMITER ;
 
 -- II.SQL NÂNG CAO CẦN LÀM
 CREATE OR REPLACE VIEW v_DanhSachPhim AS
@@ -298,6 +350,7 @@ CREATE TABLE PhongChieu (
     MaPhong INT AUTO_INCREMENT,
     TenPhong VARCHAR(50) NOT NULL,
     MaCumRap INT NOT NULL,
+    MaLoaiPhong INT NOT NULL DEFAULT 1,
     SoHang INT NOT NULL DEFAULT 10,
     SoCot INT NOT NULL DEFAULT 10,
     SucChua INT NOT NULL,
@@ -309,6 +362,10 @@ CREATE TABLE PhongChieu (
         FOREIGN KEY (MaCumRap) 
         REFERENCES CumRap(MaCumRap)
         ON DELETE RESTRICT,   -- Ngăn xóa CumRap khi còn PhongChieu đang hoạt động
+
+    CONSTRAINT FK_PhongChieu_LoaiPhong
+        FOREIGN KEY (MaLoaiPhong)
+        REFERENCES LoaiPhong(MaLoaiPhong),
 
     CONSTRAINT CK_PhongChieu_SucChua
         CHECK (SucChua > 0),
@@ -407,6 +464,7 @@ BEGIN
     DECLARE v_KyTuHang VARCHAR(2);
     DECLARE v_TenGhe VARCHAR(10);
     DECLARE v_SucChua INT;
+    DECLARE p_MaLoaiPhong INT DEFAULT 1;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -718,8 +776,9 @@ INSERT INTO KhachHang (HoTen, SDT, Email, MatKhau, DiemTichLuy, MaHang) VALUES
 ('Trần Thị B', '0987654321', 'ttb@gmail.com', '123456', 3500, 3);
 
 INSERT INTO NhanVien (TenDangNhap, MatKhau, HoTen, ChucVu, MaCumRap) VALUES 
-('nhanvien1', '123456', 'Lê Nhân Viên', 'Bán vé', 1), 
-('admin', '123456', 'Phạm Quản Lý', 'Quản lý rạp', 1);
+('admin', '123456', 'Phạm Admin', 'Admin', 1),
+('quanly1', '123456', 'Phạm Quản Lý', 'Quản Lý', 1),
+('nhanvien1', '123456', 'Lê Nhân Viên', 'Nhân Viên Bán Vé', 1);
 
 -- 3. VIEW DANH SÁCH KHÁCH VIP
 CREATE VIEW View_DanhSachKhachHangVIP AS

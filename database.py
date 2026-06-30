@@ -10,7 +10,7 @@ def get_connection():
         connection = mysql.connector.connect(**DB_CONFIG)
         return connection
     except mysql.connector.Error as err:
-        print(f"Lỗi kết nối CSDL: {err}")
+        print(f"Loi ket noi CSDL: {err}")
         return None
 
 def execute_query(query, params=None):
@@ -28,7 +28,7 @@ def execute_query(query, params=None):
         conn.commit()
         return True
     except mysql.connector.Error as err:
-        print(f"Lỗi truy vấn: {err}")
+        print(f"Loi truy van: {err}")
         conn.rollback()
         return False
     finally:
@@ -49,8 +49,35 @@ def fetch_all(query, params=None):
         results = cursor.fetchall()
         return results
     except mysql.connector.Error as err:
-        print(f"Lỗi truy vấn: {err}")
+        print(f"Loi truy van: {err}")
         return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def execute_transaction(queries_and_params):
+    """
+    Thực thi nhiều câu lệnh SQL trong cùng một kết nối và một transaction.
+    queries_and_params: list of tuples (query, params) hoặc list of strings
+    """
+    conn = get_connection()
+    if not conn:
+        return False
+        
+    cursor = conn.cursor()
+    try:
+        for item in queries_and_params:
+            if isinstance(item, tuple):
+                query, params = item
+            else:
+                query, params = item, ()
+            cursor.execute(query, params)
+        conn.commit()
+        return True
+    except mysql.connector.Error as err:
+        print(f"Loi transaction: {err}")
+        conn.rollback()
+        return False
     finally:
         cursor.close()
         conn.close()
