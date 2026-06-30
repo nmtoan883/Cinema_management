@@ -5,6 +5,6 @@
 DB_CONFIG = {
     'host': 'localhost',        # Tên host (thường là localhost)
     'user': 'root',             # Tên user (mặc định của XAMPP/MySQL là root)
-    'password': '1234',             # Mật khẩu (XAMPP thường để trống)
+    'password': '',             # Mật khẩu (XAMPP thường để trống)
     'database': 'CinemaDB'      # Tên Database của đồ án
 }
