@@ -29,7 +29,6 @@
                 {% if session.chuc_vu in ['Admin', 'Quản Lý'] %}
                     <a href="/nhanvien" class="{{ 'active' if 'nhanvien' in request.path }}">Nhân Viên</a>
                     <a href="/giave" class="{{ 'active' if 'giave' in request.path }} extracted-style-1000">Giá Vé & Phụ Thu</a>
-                    <a href="/baocao" class="{{ 'active' if 'baocao' in request.path }}">Báo Cáo</a>
                 {% endif %}
             {% elif current_user_role == 'khach' %}
                 <a href="/datve" class="{{ 'active' if 'datve' in request.path }}">🎟️ Đặt Vé Phim</a>
