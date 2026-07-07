@@ -87,6 +87,15 @@ def _loai_phong_hop_le(ma_loai_phong):
     return bool(database.fetch_all("SELECT MaLoaiPhong FROM LoaiPhong WHERE MaLoaiPhong = %s", (ma_loai_phong,)))
 
 
+def _phong_chieu_da_ton_tai(ten_phong, ma_cum_rap, ma_phong=None):
+    query = "SELECT MaPhong FROM PhongChieu WHERE TenPhong = %s AND MaCumRap = %s"
+    params = [ten_phong, ma_cum_rap]
+    if ma_phong:
+        query += " AND MaPhong != %s"
+        params.append(ma_phong)
+    return bool(database.fetch_all(query, tuple(params)))
+
+
 def _du_lieu_phong_chieu_hop_le(ten_phong, ma_cum_rap, so_hang, so_cot, ma_phong=None):
     if not ten_phong or not ma_cum_rap or not so_hang or not so_cot:
         return None, None, None, 'Vui long nhap day du ten phong, cum rap, so hang va so cot.'
@@ -421,7 +430,7 @@ def them_cum_rap():
     if success:
         flash('Da them cum rap moi.', 'success')
     else:
-        flash('Khong the them cum rap. Kiem tra du lieu trung hoac loi CSDL.', 'error')
+        flash('Không thể thêm cụm rạp. Vui lòng kiểm tra lại dữ liệu.', 'error')
 
     return redirect(url_for('rap.index', section='cumrap'))
 
@@ -712,7 +721,7 @@ def them_phong_chieu():
 
 @rap_bp.route('/phongchieu/tao-va-sinh-ghe', methods=['POST'])
 def tao_phong_va_sinh_ghe():
-    ten_phong = request.form.get('TenPhong', '').strip()
+    ten_phong_input = request.form.get('TenPhong', '').strip()
     
     if session.get('chuc_vu') == 'Admin':
         ma_cum_rap = request.form.get('MaCumRap', '').strip()
@@ -723,31 +732,59 @@ def tao_phong_va_sinh_ghe():
     so_cot = request.form.get('SoCot', '').strip()
     ma_loai_ghe_mac_dinh = request.form.get('MaLoaiGheMacDinh', '').strip()
 
-    ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value, loi = _du_lieu_tao_phong_va_ghe_hop_le(
-        ten_phong, ma_cum_rap, so_hang, so_cot, ma_loai_ghe_mac_dinh
-    )
-    if loi:
-        flash(loi, 'error')
+    if not ten_phong_input:
+        flash('Vui lòng nhập tên phòng.', 'error')
         return redirect(url_for('rap.index', section='phongchieu'))
 
-    if ma_loai_ghe_value == 0:
-        success = database.execute_query(
-            "INSERT INTO PhongChieu (TenPhong, MaCumRap, SoHang, SoCot) VALUES (%s, %s, %s, %s)",
-            (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value),
+    # Split the input by comma and clean up spaces
+    danh_sach_phong = [p.strip() for p in ten_phong_input.split(',') if p.strip()]
+    
+    if not danh_sach_phong:
+        flash('Vui lòng nhập tên phòng hợp lệ.', 'error')
+        return redirect(url_for('rap.index', section='phongchieu'))
+
+    thanh_cong_count = 0
+    that_bai_count = 0
+    loi_details = []
+
+    for ten_phong in danh_sach_phong:
+        ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value, loi = _du_lieu_tao_phong_va_ghe_hop_le(
+            ten_phong, ma_cum_rap, so_hang, so_cot, ma_loai_ghe_mac_dinh
         )
-        if success:
-            flash('Da tao phong chieu rong. Ban co the tu ve so do ghe.', 'success')
+        if loi:
+            that_bai_count += 1
+            loi_details.append(f"{ten_phong}: {loi}")
+            continue
+
+        if ma_loai_ghe_value == 0:
+            success = database.execute_query(
+                "INSERT INTO PhongChieu (TenPhong, MaCumRap, SoHang, SoCot) VALUES (%s, %s, %s, %s)",
+                (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value),
+            )
+            if success:
+                thanh_cong_count += 1
+            else:
+                that_bai_count += 1
+                loi_details.append(f"{ten_phong}: Lỗi CSDL")
         else:
-            flash('Khong the tao phong chieu rong.', 'error')
+            success = database.execute_query(
+                "CALL sp_TaoPhongVaGhe(%s, %s, %s, %s, %s)",
+                (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value),
+            )
+            if success:
+                thanh_cong_count += 1
+            else:
+                that_bai_count += 1
+                loi_details.append(f"{ten_phong}: Lỗi khi gọi SP")
+
+    if that_bai_count == 0:
+        flash(f'Đã tạo thành công {thanh_cong_count} phòng chiếu mới!', 'success')
+    elif thanh_cong_count > 0:
+        error_msg = f'Tạo thành công {thanh_cong_count} phòng. Thất bại {that_bai_count} phòng.'
+        flash(error_msg, 'warning')
     else:
-        success = database.execute_query(
-            "CALL sp_TaoPhongVaGhe(%s, %s, %s, %s, %s)",
-            (ten_phong, ma_cum_rap_value, so_hang_value, so_cot_value, ma_loai_ghe_value),
-        )
-        if success:
-            flash('Da tao phong chieu va sinh ghe tu dong.', 'success')
-        else:
-            flash('Khong the goi stored procedure sp_TaoPhongVaGhe.', 'error')
+        error_msg = f'Không thể tạo phòng nào. (Lỗi: {loi_details[0][:50]}...)'
+        flash(error_msg, 'error')
 
     return redirect(url_for('rap.index', section='phongchieu'))
 

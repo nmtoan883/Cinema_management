@@ -85,7 +85,7 @@ def profile():
     role = session.get('role')
     
     if role == 'khach':
-        user = database.fetch_all("SELECT k.*, h.TenHang, h.UuDai FROM KhachHang k LEFT JOIN HangThanhVien h ON k.MaHang = h.MaHang WHERE k.MaKH = %s", (user_id,))
+        user = database.fetch_all("SELECT k.*, h.TenHang FROM KhachHang k LEFT JOIN HangThanhVien h ON k.MaHang = h.MaHang WHERE k.MaKH = %s", (user_id,))
         history = database.fetch_all("""
             SELECT hd.MaHoaDon, hd.NgayLap, hd.TongTien,
                    p.TenPhim, pc.TenPhong, sc.GioBatDau,
@@ -112,3 +112,35 @@ def profile():
         return render_template('auth/profile_nhanvien.html', user=user[0] if user else None)
     
     return redirect('/')
+
+@auth_bp.route('/doi-mat-khau', methods=['POST'])
+def doi_mat_khau():
+    if not session.get('user_id') or session.get('role') != 'khach':
+        return redirect(url_for('auth.login'))
+        
+    user_id = session.get('user_id')
+    old_password = request.form.get('old_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    if new_password != confirm_password:
+        flash('Mật khẩu mới và xác nhận không khớp!', 'error')
+        return redirect(url_for('auth.profile'))
+        
+    user = database.fetch_all("SELECT MatKhau FROM KhachHang WHERE MaKH = %s", (user_id,))
+    if not user or user[0]['MatKhau'] != old_password:
+        flash('Mật khẩu hiện tại không đúng!', 'error')
+        return redirect(url_for('auth.profile'))
+        
+    try:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE KhachHang SET MatKhau = %s WHERE MaKH = %s", (new_password, user_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash('Đổi mật khẩu thành công!', 'success')
+    except Exception as e:
+        flash(f'Đã xảy ra lỗi: {str(e)}', 'error')
+        
+    return redirect(url_for('auth.profile'))

@@ -14,8 +14,28 @@
             <h3>Thành viên</h3>
             <p><strong>Hạng:</strong> <span class="extracted-style-1000">{{ user.TenHang }}</span></p>
             <p><strong>Điểm tích lũy:</strong> {{ user.DiemTichLuy }} điểm</p>
-            <p><strong>Ưu đãi hạng:</strong> {{ user.UuDai }}</p>
         </div>
+    </div>
+    
+    <div class="profile-change-pw-wrapper">
+        <h3 class="profile-change-pw-title"><i class="fas fa-key"></i> Đổi mật khẩu</h3>
+        <form action="/auth/doi-mat-khau" method="POST" class="profile-change-pw-form">
+            <div>
+                <label class="profile-change-pw-label">Mật khẩu hiện tại</label>
+                <input type="password" name="old_password" required class="form-control profile-change-pw-input">
+            </div>
+            <div>
+                <label class="profile-change-pw-label">Mật khẩu mới</label>
+                <input type="password" name="new_password" required class="form-control profile-change-pw-input">
+            </div>
+            <div>
+                <label class="profile-change-pw-label">Xác nhận mật khẩu</label>
+                <input type="password" name="confirm_password" required class="form-control profile-change-pw-input">
+            </div>
+            <div>
+                <button type="submit" class="profile-change-pw-btn">Lưu Thay Đổi</button>
+            </div>
+        </form>
     </div>
 
     <h3 class="extracted-style-1006">Lịch sử đặt vé</h3>
@@ -28,6 +48,7 @@
                 <th>Suất chiếu</th>
                 <th>Phòng & Ghế</th>
                 <th>Tổng Tiền</th>
+                <th>Thao Tác</th>
             </tr>
         </thead>
         <tbody>
@@ -38,6 +59,9 @@
                 <td>{{ h.GioBatDau }}</td>
                 <td>{{ h.TenPhong }} - Ghế: {{ h.DanhSachGhe }}</td>
                 <td class="extracted-style-1008">{{ "{:,.0f}".format(h.TongTien) }}đ</td>
+                <td>
+                    <a href="/datve/ve/{{ h.MaHoaDon }}" class="btn-eticket"><i class="fas fa-ticket-alt"></i> Xem E-Ticket</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

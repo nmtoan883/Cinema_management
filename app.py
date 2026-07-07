@@ -38,9 +38,17 @@ def inject_user():
 
 @app.route('/')
 def index():
-    query = "SELECT * FROM v_DanhSachPhim ORDER BY NgayKhoiChieu DESC LIMIT 8"
-    ds_phim = database.fetch_all(query)
-    return render_template('index.html', title='Trang Chủ', ds_phim=ds_phim)
+    # Phim đang chiếu (Ngày khởi chiếu <= hiện tại)
+    query_dang_chieu = "SELECT * FROM v_DanhSachPhim WHERE NgayKhoiChieu <= CURDATE() ORDER BY NgayKhoiChieu DESC LIMIT 8"
+    ds_phim_dang_chieu = database.fetch_all(query_dang_chieu)
+    
+    # Phim sắp chiếu (Ngày khởi chiếu > hiện tại)
+    query_sap_chieu = "SELECT * FROM v_DanhSachPhim WHERE NgayKhoiChieu > CURDATE() ORDER BY NgayKhoiChieu ASC LIMIT 8"
+    ds_phim_sap_chieu = database.fetch_all(query_sap_chieu)
+    
+    return render_template('index.html', title='Trang Chủ', 
+                           ds_phim_dang_chieu=ds_phim_dang_chieu, 
+                           ds_phim_sap_chieu=ds_phim_sap_chieu)
 
 @app.route('/chi-tiet-phim/<int:ma_phim>')
 def chi_tiet_phim(ma_phim):

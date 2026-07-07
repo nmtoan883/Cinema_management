@@ -25,11 +25,13 @@
         <button type="submit" class="btn btn-primary">Xem báo cáo</button>
     </form>
 
-    <div class="card" style="margin-bottom: 20px; background: #f8f9fa;">
-        <h3>Tóm tắt</h3>
-        <p><strong>Từ:</strong> {{ from_date }} <strong>Đến:</strong> {{ to_date }}</p>
-        <p><strong>Tổng vé bán:</strong> {{ summary.tong_ve }}</p>
-        <p><strong>Tổng doanh thu:</strong> {{ "{:,.0f}".format(summary.tong_doanh_thu) }}đ</p>
+    <div style="margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
+        <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: #e2e8f0;">Tóm tắt</h3>
+        <div style="display: flex; gap: 30px; font-size: 1.1rem;">
+            <p><strong style="color: var(--text-muted);">Từ:</strong> {{ from_date }} <strong style="color: var(--text-muted); margin-left: 10px;">Đến:</strong> {{ to_date }}</p>
+            <p><strong style="color: var(--text-muted);">Tổng vé bán:</strong> <span style="color: #10b981; font-weight: bold;">{{ summary.tong_ve }}</span></p>
+            <p><strong style="color: var(--text-muted);">Tổng doanh thu:</strong> <span style="color: #f59e0b; font-weight: bold;">{{ "{:,.0f}".format(summary.tong_doanh_thu) }}đ</span></p>
+        </div>
     </div>
 
     <table class="table" id="report-table">
@@ -47,10 +49,6 @@
                 <td>{{ row.SoVe }}</td>
                 <td>{{ "{:,.0f}".format(row.DoanhThu) }}đ</td>
             </tr>
-            {% else %}
-            <tr>
-                <td colspan="3">Không có dữ liệu trong khoảng thời gian này.</td>
-            </tr>
             {% endfor %}
         </tbody>
     </table>
@@ -64,7 +62,10 @@ $(document).ready(function () {
         paging: false,
         searching: false,
         info: false,
-        order: [[2, 'desc']]
+        order: [[2, 'desc']],
+        language: {
+            emptyTable: "Không có dữ liệu trong khoảng thời gian này."
+        }
     });
 });
 </script>

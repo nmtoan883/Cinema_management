@@ -3,34 +3,50 @@
 {% block content %}
 <div class="card inline-style-72" >
     <h2 class="inline-style-68" >🎟️ Đặt Vé Phim</h2>
-    
     <form action="/datve/ban-ve" method="POST" id="bookingForm">
-        
-        <!-- Bước 1: Chọn Phim -->
-        <div class="form-group">
-            <label>1. Chọn Phim Đang Chiếu</label>
-            <select id="phimSelect" class="form-control" onchange="loadSuatChieu()" required>
-                <option value="">-- Chọn Phim --</option>
-                {% for phim in ds_phim %}
-                <option value="{{ phim.MaPhim }}" {% if selected_phim_id == phim.MaPhim|string %}selected{% endif %}>
-                    {{ phim.TenPhim }} ({{ phim.GioiHanDoTuoi }})
-                </option>
-                {% endfor %}
-            </select>
+        <!-- STEP 1: BOOKING -->
+        <div id="step_booking">
+            <!-- Bước 1: Chọn Phim -->
+            <div class="form-group">
+                <label>1. Chọn Phim Đang Chiếu</label>
+                <select id="phimSelect" class="form-control" onchange="loadSuatChieu()" required>
+                    <option value="">-- Chọn Phim --</option>
+                    {% for phim in ds_phim %}
+                    <option value="{{ phim.MaPhim }}" {% if selected_phim_id == phim.MaPhim|string %}selected{% endif %}>
+                        {{ phim.TenPhim }} ({{ phim.GioiHanDoTuoi }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        <!-- Bước 2: Chọn Cơ Sở -->
+        <div class="form-group inline-style-73" id="cumRapContainer" >
+            <label>2. Chọn Cơ Sở</label>
+            <div class="inline-style-74" id="cumRapList" >
+                <!-- Cơ sở render bằng JS -->
+            </div>
         </div>
 
-        <!-- Bước 2: Chọn Suất Chiếu -->
+        <!-- Bước 3: Chọn Ngày Chiếu -->
+        <div class="form-group inline-style-73" id="ngayChieuContainer" >
+            <label>3. Chọn Ngày Chiếu</label>
+            <div class="inline-style-74" id="ngayChieuList" >
+                <!-- Ngày chiếu render bằng JS -->
+            </div>
+        </div>
+
+        <!-- Bước 4: Chọn Giờ Chiếu -->
         <div class="form-group inline-style-73" id="suatChieuContainer" >
-            <label>2. Chọn Suất Chiếu</label>
+            <label>4. Chọn Giờ Chiếu</label>
             <div class="inline-style-74" id="suatChieuList" >
                 <!-- Suất chiếu render bằng JS -->
             </div>
             <input type="hidden" name="ma_suat" id="maSuatInput" required>
         </div>
 
-        <!-- Bước 3: Chọn Ghế -->
+        <!-- Bước 5: Chọn Ghế -->
         <div class="form-group inline-style-73" id="gheContainer" >
-            <label>3. Chọn Ghế Ngồi</label>
+            <label>5. Chọn Ghế Ngồi</label>
             <div class="inline-style-75" >
                 <div class="inline-style-76" >MÀN HÌNH</div>
                 
@@ -47,167 +63,54 @@
                 <span><div class="inline-style-84" ></div> Đã bán</span>
             </div>
             <input type="hidden" name="ma_ghe" id="maGheInput" required>
+            <div style="margin-top: 2rem; text-align: right;">
+                <button type="button" id="btnNextToFnb" class="btn" style="display: none; background: var(--primary); color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 1.1rem; cursor: pointer;">Tiếp tục: Chọn Bắp Nước</button>
+            </div>
+        </div>
+        </div>
+        
+        <!-- STEP 2: F&B -->
+        <div id="step_fnb" style="display: none;">
+            <div class="form-group" id="fnbContainer">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <h2>Bước 6: Chọn Bắp Nước (Tuỳ chọn)</h2>
+                </div>
+                <div id="fnbList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <!-- Render F&B items via JS -->
+                </div>
+            </div>
+            <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                <button type="button" id="btnBackToBooking" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: white; padding: 10px 25px; border-radius: 8px; cursor: pointer;">Quay lại chọn ghế</button>
+                <div>
+                    <button type="button" id="btnSkipFnb" class="btn" style="background: transparent; color: var(--text-muted); border: none; margin-right: 15px; cursor: pointer;">Bỏ qua</button>
+                    <button type="button" id="btnNextToCheckout" class="btn" style="background: var(--primary); color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 1.1rem; cursor: pointer;">Tiếp tục: Thanh Toán</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Thông tin giao dịch -->
-        <div class="form-group inline-style-85" id="checkoutContainer" >
-            {% if current_user_role == 'nhanvien' %}
-            <label>Số Điện Thoại Khách Hàng (Dùng để cộng điểm)</label>
-            <input type="text" name="ma_kh" placeholder="Nhập SDT khách hàng (Bắt buộc)" required>
-            {% endif %}
-            
-            <div class="inline-style-86" >
-                <h3 class="inline-style-87" >Xác nhận đặt vé</h3>
-                <p>Ghế đã chọn: <strong id="selectedGheText">Chưa chọn</strong></p>
+        <!-- STEP 3: CHECKOUT -->
+        <div id="step_checkout" style="display: none;">
+            <div class="form-group inline-style-85" id="checkoutContainer">
+                {% if current_user_role == 'nhanvien' %}
+                <label>Số Điện Thoại Khách Hàng (Dùng để cộng điểm)</label>
+                <input type="text" name="ma_kh" placeholder="Nhập SDT khách hàng (Bắt buộc)" required>
+                {% endif %}
+                
+                <div class="inline-style-86" >
+                    <h3 class="inline-style-87" >Xác nhận đặt vé</h3>
+                    <p style="margin-bottom: 0.5rem;">Ghế đã chọn: <strong id="selectedGheText">Chưa chọn</strong></p>
+                    <p style="margin-bottom: 0.5rem;">Bắp Nước: <strong id="selectedFnbText">0đ</strong></p>
+                    <p>Tổng tiền: <strong id="totalPriceText" style="color: #10b981; font-size: 1.2rem;">0 ₫</strong></p>
+                </div>
+                
+                <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="btnBackToFnb" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: white; padding: 10px 25px; border-radius: 8px; cursor: pointer;">Quay lại Bắp Nước</button>
+                    <button type="submit" class="btn inline-style-88" style="padding: 12px 30px; font-size: 1.2rem;" >Thanh Toán & In Vé</button>
+                </div>
             </div>
-            
-            <button type="submit" class="btn inline-style-88" >Thanh Toán & In Vé</button>
         </div>
     </form>
 </div>
 
-<script>
-    // Gọi tự động nếu có phim_id truyền vào từ trang chủ
-    window.onload = function() {
-        if(document.getElementById('phimSelect').value) {
-            loadSuatChieu();
-        }
-    };
-
-    function loadSuatChieu() {
-        const phimId = document.getElementById('phimSelect').value;
-        const container = document.getElementById('suatChieuContainer');
-        const list = document.getElementById('suatChieuList');
-        const gheContainer = document.getElementById('gheContainer');
-        const checkoutContainer = document.getElementById('checkoutContainer');
-        
-        // Reset state
-        document.getElementById('maSuatInput').value = '';
-        document.getElementById('maGheInput').value = '';
-        gheContainer.style.display = 'none';
-        checkoutContainer.style.display = 'none';
-        
-        if (!phimId) {
-            container.style.display = 'none';
-            return;
-        }
-
-        fetch(`/datve/api/suatchieu/${phimId}`)
-            .then(res => res.json())
-            .then(data => {
-                list.innerHTML = '';
-                if (data.length === 0) {
-                    list.innerHTML = '<p class="inline-style-89" >Hiện không có suất chiếu nào cho phim này.</p>';
-                } else {
-                    data.forEach(sc => {
-                        const btn = document.createElement('div');
-                        btn.style = `padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; text-align: center; background: var(--bg-card); transition: all 0.2s;`;
-                        btn.innerHTML = `<strong class="inline-style-90" >${sc.GioBatDau}</strong><span class="inline-style-91" >${sc.TenLoaiPhong}</span>`;
-                        
-                        btn.onclick = function() {
-                            // Reset active styles
-                            Array.from(list.children).forEach(c => {
-                                c.style.borderColor = 'var(--border-color)';
-                                c.style.background = 'var(--bg-card)';
-                            });
-                            btn.style.borderColor = 'var(--primary)';
-                            btn.style.background = 'rgba(139, 92, 246, 0.1)';
-                            
-                            document.getElementById('maSuatInput').value = sc.MaSuatChieu;
-                            loadGhe(sc.MaSuatChieu);
-                        };
-                        list.appendChild(btn);
-                    });
-                }
-                container.style.display = 'block';
-            });
-    }
-
-    function loadGhe(suatChieuId) {
-        const container = document.getElementById('gheContainer');
-        const list = document.getElementById('gheList');
-        document.getElementById('maGheInput').value = '';
-        document.getElementById('selectedGheText').innerText = 'Chưa chọn';
-        document.getElementById('checkoutContainer').style.display = 'none';
-
-        fetch(`/datve/api/ghe/${suatChieuId}`)
-            .then(res => res.json())
-            .then(data => {
-                const danh_sach_ghe = data.ghe;
-                const so_cot = data.so_cot;
-                
-                list.style.gridTemplateColumns = `repeat(${so_cot}, 1fr)`;
-                list.innerHTML = '';
-                
-                danh_sach_ghe.forEach(ghe => {
-                    const btn = document.createElement('div');
-                    btn.innerText = ghe.TenGhe;
-                    btn.style = `padding: 0.5rem; text-align: center; border-radius: 4px; cursor: pointer; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s;`;
-                    
-                    // Xử lý giữ đúng vị trí tọa độ thật của ghế trên bản đồ
-                    const match = ghe.TenGhe.match(/^([A-Z]+)(\d+)$/);
-                    if (match) {
-                        const rowStr = match[1];
-                        const colNum = parseInt(match[2]);
-                        
-                        let rowNum = 0;
-                        for (let i = 0; i < rowStr.length; i++) {
-                            rowNum = rowNum * 26 + (rowStr.charCodeAt(i) - 64);
-                        }
-                        
-                        btn.style.gridRow = rowNum;
-                        btn.style.gridColumn = colNum;
-                    }
-
-                    if (ghe.DaBan === 1) {
-                        btn.style.background = '#ef4444';
-                        btn.style.opacity = '0.5';
-                        btn.style.cursor = 'not-allowed';
-                        btn.title = "Ghế đã được bán";
-                    } else {
-                        // Chọn màu nền và viền tùy theo loại ghế
-                        let defaultBg = 'rgba(255,255,255,0.05)';
-                        let defaultBorder = 'rgba(255,255,255,0.2)';
-                        
-                        if (ghe.TenLoai === 'VIP') {
-                            defaultBg = 'rgba(245, 158, 11, 0.15)';
-                            defaultBorder = '#f59e0b';
-                            btn.style.color = '#f59e0b';
-                        } else if (ghe.TenLoai === 'Couple') {
-                            defaultBg = 'rgba(236, 72, 153, 0.15)';
-                            defaultBorder = '#ec4899';
-                            btn.style.color = '#ec4899';
-                        }
-                        
-                        btn.style.background = defaultBg;
-                        btn.style.borderColor = defaultBorder;
-                        btn.dataset.defaultBg = defaultBg;
-                        btn.dataset.defaultBorder = defaultBorder;
-                        
-                        btn.onclick = function() {
-                            // Reset all other available seats to their original color
-                            Array.from(list.children).forEach(c => {
-                                if(c.style.background !== 'rgb(239, 68, 68)' && c.dataset.defaultBg) { // not sold
-                                    c.style.background = c.dataset.defaultBg;
-                                    c.style.borderColor = c.dataset.defaultBorder;
-                                }
-                            });
-                            
-                            // Highlight the selected seat
-                            btn.style.background = '#10b981';
-                            btn.style.borderColor = '#10b981';
-                            btn.style.color = '#fff';
-                            
-                            document.getElementById('maGheInput').value = ghe.MaGhe;
-                            document.getElementById('selectedGheText').innerText = ghe.TenGhe + ` (${ghe.TenLoai})`;
-                            document.getElementById('checkoutContainer').style.display = 'block';
-                            document.getElementById('checkoutContainer').scrollIntoView({ behavior: 'smooth' });
-                        };
-                    }
-                    list.appendChild(btn);
-                });
-                container.style.display = 'block';
-            });
-    }
-</script>
+<script src="{{ url_for('static', filename='dat_ve.js') }}?v=1.2"></script>
 {% endblock %}

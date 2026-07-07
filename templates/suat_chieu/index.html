@@ -49,20 +49,6 @@
 
     <!-- TAB 2: Tất Cả Lịch Chiếu -->
     <div id="tatca" class="tab-content">
-        <!-- Tìm kiếm nhanh Full-Text Search (theo Khung giờ hoặc Tên rạp) -->
-        <div style="padding: 15px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-            <form method="GET" action="/suatchieu/" class="form-inline" style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                <div style="flex: 1; display: flex; gap: 5px; align-items: center;">
-                    <span style="color: #bbb; padding: 0 10px;"><i class="fas fa-search"></i></span>
-                    <input type="text" name="q" class="form-control" placeholder="Tìm kiếm nhanh suất chiếu theo khung giờ (vd: 12:00) hoặc tên rạp (vd: Lotte)..." value="{{ q }}" style="flex: 1; background: rgba(0, 0, 0, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 4px;">
-                </div>
-                <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border-radius: 4px; background-color: #007bff; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;"><i class="fas fa-search"></i> Tìm kiếm FTS</button>
-                {% if q %}
-                <a href="/suatchieu/" class="btn btn-secondary" style="padding: 10px 20px; border-radius: 4px; background-color: #6c757d; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fas fa-undo"></i> Xóa lọc</a>
-                {% endif %}
-            </form>
-            <small style="color: #bbb; margin-top: 5px; display: block;">* Tìm kiếm thông minh bằng Full-Text Search MySQL trên Cột Tên rạp và Khung giờ chiếu.</small>
-        </div>
 
         {% if ds_tatca %}
         
@@ -103,8 +89,8 @@
                     <td>{{ sc.TenPhong }}</td>
                     <td><span class="badge extracted-style-1061">{{ sc.DinhDang }}</span></td>
                     <td class="inline-style-162" >
-                        BĐ: {{ sc.GioBatDau }}<br>
-                        KT: {{ sc.GioKetThuc }}
+                        Bắt đầu: {{ sc.GioBatDau.strftime('%d-%m-%Y %H:%M') if sc.GioBatDau else '' }}<br>
+                        Kết thúc: {{ sc.GioKetThuc.strftime('%d-%m-%Y %H:%M') if sc.GioKetThuc else '' }}
                     </td>
                     <td>
                         Cơ bản:<br>
@@ -130,25 +116,46 @@
     <div id="themmoi" class="tab-content">
         <div class="card extracted-style-1010">
             <h2 class="inline-style-123" >Thêm Suất Chiếu Mới</h2>
-            <p class="inline-style-156" >Lưu ý: Trigger sẽ kiểm tra và chặn nếu trùng lịch ở cùng phòng.</p>
             
-            <form action="/suatchieu/them" method="POST">
+
+            <form action="/suatchieu/them" method="POST" id="suatChieuForm">
+                
+                <div class="form-group" style="margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                    <div style="display: flex; gap: 30px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold;">
+                            <input type="radio" name="mode" value="single" checked onchange="toggleMode()" style="transform: scale(1.2);"> Tạo 1 Suất
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold;">
+                            <input type="radio" name="mode" value="bulk" onchange="toggleMode()" style="transform: scale(1.2);"> Tạo Hàng Loạt (Cùng Ngày)
+                        </label>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Phim</label>
-                    <select name="ma_phim" required class="form-control">
+                    <select name="ma_phim" id="phimSelect" required class="form-control" onchange="calculateEndTime()">
                         <option value="">-- Chọn Phim --</option>
                         {% for p in ds_phim %}
-                        <option value="{{ p.MaPhim }}">{{ p.TenPhim }}</option>
+                        <option value="{{ p.MaPhim }}" data-thoiluong="{{ p.ThoiLuong }}">{{ p.TenPhim }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 
                 <div class="form-group">
+                    <label>Cụm Rạp</label>
+                    <select id="cumRapSelect" class="form-control" onchange="filterRooms()">
+                        <option value="">-- Chọn Cụm Rạp --</option>
+                        {% for cr in ds_cum_rap %}
+                        <option value="{{ cr.MaCumRap }}">{{ cr.TenCumRap }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label>Phòng Chiếu</label>
-                    <select name="ma_phong" required class="form-control">
+                    <select name="ma_phong" id="phongSelect" required class="form-control">
                         <option value="">-- Chọn Phòng --</option>
                         {% for p in ds_phong %}
-                        <option value="{{ p.MaPhong }}">{{ p.TenPhong }}</option>
+                        <option value="{{ p.MaPhong }}" data-cumrap="{{ p.MaCumRap }}">{{ p.TenPhong }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -173,13 +180,27 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Giờ Bắt Đầu</label>
-                    <input type="datetime-local" name="gio_bat_dau" required class="form-control">
+                <div id="single-mode-inputs">
+                    <div class="form-group">
+                        <label>Giờ Bắt Đầu</label>
+                        <input type="datetime-local" name="gio_bat_dau" id="gioBatDauInput" required class="form-control" onchange="calculateEndTime()">
+                    </div>
+                    <div class="form-group">
+                        <label>Giờ Kết Thúc</label>
+                        <input type="datetime-local" name="gio_ket_thuc" id="gioKetThucInput" required class="form-control" readonly style="background-color: #e9ecef; cursor: not-allowed; color: #495057;">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Giờ Kết Thúc</label>
-                    <input type="datetime-local" name="gio_ket_thuc" required class="form-control">
+                
+                <div id="bulk-mode-inputs" style="display: none; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <div class="form-group">
+                        <label>Ngày Chiếu</label>
+                        <input type="date" name="ngay_chieu" id="ngayChieuInput" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Các Khung Giờ Bắt Đầu (cách nhau bởi dấu phẩy)</label>
+                        <input type="text" name="danh_sach_gio" id="danhSachGioInput" class="form-control" placeholder="Ví dụ: 08:00, 10:30, 14:00, 16:30">
+                        <small style="color: #9ca3af; display: block; margin-top: 5px;">Định dạng giờ: HH:MM (24h). Hệ thống sẽ tự cộng thời lượng phim để tính Giờ Kết Thúc cho từng suất.</small>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn inline-style-157 extracted-style-1067">Tạo Suất Chiếu</button>
@@ -249,5 +270,89 @@
         window.tatCaTable.search('').columns().search('').draw();
     }
 
+    // Logic lọc Phòng Chiếu theo Cụm Rạp
+    function filterRooms() {
+        const cumRapId = document.getElementById('cumRapSelect').value;
+        const phongSelect = document.getElementById('phongSelect');
+        const options = phongSelect.querySelectorAll('option');
+        
+        let firstVisible = null;
+        options.forEach(opt => {
+            if (opt.value === "") return; // Bỏ qua option mặc định
+            if (cumRapId === "" || opt.dataset.cumrap === cumRapId) {
+                opt.style.display = '';
+                if (!firstVisible) firstVisible = opt;
+            } else {
+                opt.style.display = 'none';
+            }
+        });
+        
+        // Reset lựa chọn
+        phongSelect.value = "";
+    }
+
+    // Logic tính toán Giờ Kết Thúc
+    function calculateEndTime() {
+        const phimSelect = document.getElementById('phimSelect');
+        const gioBatDauInput = document.getElementById('gioBatDauInput');
+        const gioKetThucInput = document.getElementById('gioKetThucInput');
+        
+        if (!phimSelect.value || !gioBatDauInput.value) {
+            gioKetThucInput.value = '';
+            return;
+        }
+        
+        const selectedOption = phimSelect.options[phimSelect.selectedIndex];
+        const thoiLuong = parseInt(selectedOption.dataset.thoiluong); // Tính bằng phút
+        
+        if (isNaN(thoiLuong)) return;
+        
+        const startTime = new Date(gioBatDauInput.value);
+        // Thêm thời lượng phim vào thời gian bắt đầu
+        startTime.setMinutes(startTime.getMinutes() + thoiLuong);
+        
+        // Format lại thành YYYY-MM-DDThh:mm để đưa vào input datetime-local
+        // JS Date timezone xử lý hơi rườm rà nên ta phải tự format
+        const year = startTime.getFullYear();
+        const month = String(startTime.getMonth() + 1).padStart(2, '0');
+        const day = String(startTime.getDate()).padStart(2, '0');
+        const hours = String(startTime.getHours()).padStart(2, '0');
+        const minutes = String(startTime.getMinutes()).padStart(2, '0');
+        
+        gioKetThucInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    // Chạy filter 1 lần khi load trang để ẩn các phòng không khớp (nếu Cụm Rạp có sẵn)
+    window.onload = function() {
+        filterRooms();
+    }
+
+    // Toggle giữa Tạo 1 Suất và Tạo Hàng Loạt
+    function toggleMode() {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const form = document.getElementById('suatChieuForm');
+        
+        if (mode === 'single') {
+            document.getElementById('single-mode-inputs').style.display = 'block';
+            document.getElementById('bulk-mode-inputs').style.display = 'none';
+            
+            document.getElementById('gioBatDauInput').required = true;
+            document.getElementById('gioKetThucInput').required = true;
+            document.getElementById('ngayChieuInput').required = false;
+            document.getElementById('danhSachGioInput').required = false;
+            
+            form.action = "/suatchieu/them";
+        } else {
+            document.getElementById('single-mode-inputs').style.display = 'none';
+            document.getElementById('bulk-mode-inputs').style.display = 'block';
+            
+            document.getElementById('gioBatDauInput').required = false;
+            document.getElementById('gioKetThucInput').required = false;
+            document.getElementById('ngayChieuInput').required = true;
+            document.getElementById('danhSachGioInput').required = true;
+            
+            form.action = "/suatchieu/them-hang-loat";
+        }
+    }
 </script>
 {% endblock %}

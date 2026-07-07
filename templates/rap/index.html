@@ -224,8 +224,9 @@
     </div>
 
     <div class="admin-grid">
+        {% if phong_chieu_editing_id %}
         <section class="panel">
-            <h2>{{ 'Cap nhat phong chieu' if phong_chieu_editing_id else 'Them phong chieu' }}</h2>
+            <h2>Cap nhat phong chieu</h2>
             <form method="post" action="{{ url_for('rap.sua_phong_chieu', ma_phong=phong_chieu_editing_id) if phong_chieu_editing_id else url_for('rap.them_phong_chieu') }}">
                 <div class="form-group">
                     <label for="TenPhong">Ten phong</label>
@@ -269,13 +270,13 @@
                 <button type="submit" class="btn">{{ 'Luu thay doi' if phong_chieu_editing_id else 'Them phong chieu' }}</button>
             </form>
         </section>
-
+        {% else %}
         <section class="panel">
             <h2>Tao phong va sinh ghe</h2>
             <form method="post" action="{{ url_for('rap.tao_phong_va_sinh_ghe') }}">
                 <div class="form-group">
-                    <label for="TenPhongAuto">Ten phong</label>
-                    <input id="TenPhongAuto" name="TenPhong" type="text" required>
+                    <label for="TenPhongAuto">Ten phong (Nhập nhiều phòng cách nhau bởi dấu phẩy, vd: P01, P02)</label>
+                    <input id="TenPhongAuto" name="TenPhong" type="text" placeholder="P01, P02, P03" required>
                 </div>
 
                 <div class="form-group">
@@ -324,6 +325,7 @@
                 <button type="submit" class="btn">Thêm phòng chiếu</button>
             </form>
         </section>
+        {% endif %}
 
         <section class="panel panel-span-2">
             <h2>Danh sach phong chieu</h2>
@@ -509,14 +511,14 @@
     {% else %}
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Admin / ThongKe</p>
-            <h1>Thong ke cum rap</h1>
-            <p class="section-copy">Du lieu duoc lay truc tiep tu view v_ThongKePhongTheoCumRap gom tong so phong chieu va tong suc chua cua tung cum rap.</p>
+            <p class="eyebrow">Quản trị / Thống kê</p>
+            <h1>Thống kê cụm rạp</h1>
+            <p class="section-copy">Báo cáo tổng hợp số lượng phòng chiếu và tổng sức chứa của từng cụm rạp trên toàn hệ thống.</p>
         </div>
     </div>
 
     <section class="panel">
-        <h2>Tong hop theo cum rap</h2>
+        <h2>Tổng hợp theo cụm rạp</h2>
         {% if ds_thong_ke_cum_rap %}
         <table>
             <thead>
@@ -800,12 +802,12 @@ function showSeatMap(maPhong, tenPhong) {
                 
                 document.getElementById('seatMapModal').style.display = 'block';
             } else {
-                alert('Lỗi: ' + data.message);
+                Swal.fire('Lỗi', data.message, 'error');
             }
         })
         .catch(err => {
             console.error(err);
-            alert('Lỗi kết nối API');
+            Swal.fire('Lỗi', 'Lỗi kết nối API', 'error');
         });
 }
 
@@ -838,31 +840,42 @@ function saveSeatMap() {
     }
     
     if (updates.length === 0 && adds.length === 0 && deletes.length === 0) {
-        alert("Chưa có thay đổi nào để lưu!");
+        Swal.fire('Thông báo', 'Chưa có thay đổi nào để lưu!', 'info');
         return;
     }
     
-    if (!confirm("Lưu các thay đổi này vào CSDL?")) return;
-    
-    fetch('/api/v1/phongchieu/' + currentMaPhong + '/capnhat_sodo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ updates, adds, deletes })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if(data.status === 'success') {
-            alert('Lưu sơ đồ thành công!');
-            // Reload the map
-            const tenPhong = document.getElementById('seatMapTitle').innerText.replace("Sơ đồ phòng ", "");
-            showSeatMap(currentMaPhong, tenPhong);
-        } else {
-            alert('Lỗi: ' + data.message);
+    Swal.fire({
+        title: 'Xác nhận lưu',
+        text: 'Xác nhận lưu sơ đồ ghế này vào hệ thống?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/api/v1/phongchieu/' + currentMaPhong + '/capnhat_sodo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ updates, adds, deletes })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    Swal.fire('Thành công!', 'Lưu sơ đồ thành công!', 'success');
+                    // Reload the map
+                    const tenPhong = document.getElementById('seatMapTitle').innerText.replace("Sơ đồ phòng ", "");
+                    showSeatMap(currentMaPhong, tenPhong);
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                Swal.fire('Lỗi', 'Lỗi kết nối API', 'error');
+            });
         }
-    })
-    .catch(e => {
-        console.error(e);
-        alert('Lỗi kết nối API');
     });
 }
 

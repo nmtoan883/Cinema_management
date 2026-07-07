@@ -144,13 +144,18 @@ def capnhat_sodo_phong(ma_phong):
     conn = database.get_connection()
     cursor = conn.cursor()
     try:
-        # Xử lý cập nhật
-        for u in updates:
-            cursor.execute("UPDATE Ghe SET MaLoaiGhe = %s, TenGhe = %s WHERE MaGhe = %s AND MaPhong = %s", (u['MaLoaiGhe'], u['TenGhe'], u['MaGhe'], ma_phong))
-            
-        # Xử lý xóa
+        # Xử lý xóa (Thực hiện xóa trước để giải phóng tên ghế trống)
         for d in deletes:
             cursor.execute("DELETE FROM Ghe WHERE MaGhe = %s AND MaPhong = %s", (d['MaGhe'], ma_phong))
+
+        # Xử lý cập nhật - Bước 1: Đổi tên ghế thành tên tạm để tránh lỗi Duplicate Key Constraint khi dịch chuyển tên ghế
+        for u in updates:
+            cursor.execute("UPDATE Ghe SET TenGhe = CONCAT('tmp_', MaGhe) WHERE MaGhe = %s AND MaPhong = %s", (u['MaGhe'], ma_phong))
+            
+        # Bước 2: Cập nhật tên ghế chính thức và loại ghế
+        for u in updates:
+            cursor.execute("UPDATE Ghe SET MaLoaiGhe = %s, TenGhe = %s WHERE MaGhe = %s AND MaPhong = %s", 
+                           (u['MaLoaiGhe'], u['TenGhe'], u['MaGhe'], ma_phong))
             
         # Xử lý thêm
         for a in adds:

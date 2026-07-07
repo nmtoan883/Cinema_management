@@ -21,7 +21,7 @@
 </div>
 
 <div class="inline-style-46" >
-    {% for phim in ds_phim %}
+    {% for phim in ds_phim_dang_chieu %}
     <div class="card inline-style-47" >
         <a class="inline-style-48" href="/chi-tiet-phim/{{ phim.MaPhim }}" >
             <div class="inline-style-49" >
@@ -54,6 +54,49 @@
     {% else %}
     <div class="inline-style-57" >
         <p class="inline-style-58" >Hiện chưa có phim nào đang chiếu.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Phim Sắp Chiếu Grid -->
+<div class="inline-style-44" style="margin-top: 40px;">
+    <h2 class="inline-style-45" >Phim Sắp Chiếu</h2>
+</div>
+
+<div class="inline-style-46" >
+    {% for phim in ds_phim_sap_chieu %}
+    <div class="card inline-style-47" >
+        <a class="inline-style-48" href="/chi-tiet-phim/{{ phim.MaPhim }}" >
+            <div class="inline-style-49" >
+                <img class="inline-style-50" src="{{ phim.Poster }}" alt="{{ phim.TenPhim }}"  onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; font-size: 0.9rem;
+                    {% if '18' in phim.GioiHanDoTuoi %} color: #ef4444; border: 1px solid #ef4444;
+                    {% elif '16' in phim.GioiHanDoTuoi %} color: #f59e0b; border: 1px solid #f59e0b;
+                    {% else %} color: #10b981; border: 1px solid #10b981; {% endif %}">
+                    {{ phim.GioiHanDoTuoi }}
+                </div>
+            </div>
+            
+            <div class="inline-style-51" >
+                <h3 class="inline-style-52" >{{ phim.TenPhim }}</h3>
+                
+                <div class="inline-style-53" >
+                    <span>⏱️ {{ phim.ThoiLuong }} phút</span>
+                    <span>📅 {{ phim.NgayKhoiChieu.strftime('%d/%m/%Y') if phim.NgayKhoiChieu else 'N/A' }}</span>
+                </div>
+                
+                <p class="inline-style-54" >
+                    🎭 {{ phim.CacTheLoai }}
+                </p>
+            </div>
+        </a>
+        <div class="inline-style-55" >
+            <button class="btn inline-style-56" style="background-color: #6c757d; cursor: not-allowed;" disabled>Sắp Chiếu</button>
+        </div>
+    </div>
+    {% else %}
+    <div class="inline-style-57" >
+        <p class="inline-style-58" >Hiện chưa có phim nào sắp chiếu.</p>
     </div>
     {% endfor %}
 </div>

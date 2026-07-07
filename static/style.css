@@ -101,6 +101,81 @@ body {
     color: var(--text-main);
 }
 
+.section-tab.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--text-main) !important;
+}
+
+/* Profile Change Password Styles */
+.profile-change-pw-wrapper {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.profile-change-pw-title {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #e2e8f0;
+}
+
+.profile-change-pw-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.profile-change-pw-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.profile-change-pw-input {
+    width: 100%;
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.profile-change-pw-btn {
+    background: var(--primary);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    height: 38px;
+    transition: all 0.2s;
+}
+
+.profile-change-pw-btn:hover {
+    background: var(--primary-hover);
+}
+
+.btn-eticket {
+    background: var(--primary);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.btn-eticket:hover {
+    background: var(--primary-hover);
+    color: white;
+}
+
 .section-heading {
     display: flex;
     justify-content: space-between;
