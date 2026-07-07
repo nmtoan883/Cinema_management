@@ -194,7 +194,12 @@ def dat_ve(ma_hoa_don, ma_kh, ma_nv, ma_ve, ma_suat_chieu, ma_ghe, dich_vu_list=
             (tong_tien, ma_hoa_don)
         )
 
-        diem_tich_luy = int(tong_tien // 10000)
+        cursor.execute(
+            "SELECT fn_TinhDiemTichLuy(%s) AS diem_tich_luy",
+            (tong_tien,)
+        )
+        diem_result = cursor.fetchone()
+        diem_tich_luy = int(diem_result['diem_tich_luy']) if diem_result and diem_result.get('diem_tich_luy') is not None else 0
         if diem_tich_luy > 0:
             cursor.execute(
                 "UPDATE KhachHang SET DiemTichLuy = DiemTichLuy + %s WHERE MaKH = %s",

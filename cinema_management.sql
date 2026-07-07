@@ -713,6 +713,15 @@ BEGIN
     RETURN v_GiaCuoiCung;
 END$$
 
+DELIMITER $$
+
+CREATE FUNCTION fn_TinhDiemTichLuy(p_TongTien DECIMAL(18,2))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN FLOOR(p_TongTien / 10000);
+END$$
+
 DELIMITER ;
 -- ------Quản lý Khách hàng, Nhân viên & Bắp nước----------
 CREATE TABLE HangThanhVien (
