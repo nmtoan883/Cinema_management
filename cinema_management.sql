@@ -567,6 +567,56 @@ CREATE TABLE SuatChieu (
     CHECK (GioKetThuc > GioBatDau)
 );
 
+DELIMITER $$
+
+-- FUNCTION: Tinh gia ve cuoi cung
+CREATE FUNCTION fn_TinhGiaVeCuoiCung(p_MaSuatChieu INT)
+RETURNS DECIMAL(18,2)
+READS SQL DATA
+BEGIN
+    DECLARE v_GiaCoBan DECIMAL(18,2);
+    DECLARE v_PhuThuLoaiPhong DECIMAL(18,2);
+    DECLARE v_PhuThuNgayLe DECIMAL(18,2);
+    DECLARE v_GiaCuoiCung DECIMAL(18,2);
+
+    SELECT 
+        gv.GiaCoBan,
+        lp.PhuThu,
+        IFNULL(nl.PhuThu, 0)
+    INTO 
+        v_GiaCoBan,
+        v_PhuThuLoaiPhong,
+        v_PhuThuNgayLe
+    FROM SuatChieu sc
+    JOIN GiaVe_CoBan gv 
+        ON sc.MaGiaVe = gv.MaGiaVe
+    JOIN PhongChieu pc 
+        ON sc.MaPhong = pc.MaPhong
+    JOIN LoaiPhong lp 
+        ON pc.MaLoaiPhong = lp.MaLoaiPhong
+    LEFT JOIN NgayLe nl 
+        ON DATE(sc.GioBatDau) = nl.Ngay
+    WHERE sc.MaSuatChieu = p_MaSuatChieu;
+
+    SET v_GiaCuoiCung = v_GiaCoBan 
+                      + v_PhuThuLoaiPhong 
+                      + v_PhuThuNgayLe;
+
+    RETURN v_GiaCuoiCung;
+END$$
+
+DELIMITER $$
+
+-- FUNCTION: Tinh diem tich luy
+CREATE FUNCTION fn_TinhDiemTichLuy(p_TongTien DECIMAL(18,2))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN FLOOR(p_TongTien / 10000);
+END$$
+
+DELIMITER ;
+
 -- VIEW: Lich chieu hom nay
 CREATE VIEW v_LichChieuHomNay AS
 SELECT
@@ -675,51 +725,6 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Thoi gian suat chieu khong du cho thoi luong cua phim.';
     END IF;
-END$$
-
--- FUNCTION: Tinh gia ve cuoi cung
-CREATE FUNCTION fn_TinhGiaVeCuoiCung(p_MaSuatChieu INT)
-RETURNS DECIMAL(18,2)
-READS SQL DATA
-BEGIN
-    DECLARE v_GiaCoBan DECIMAL(18,2);
-    DECLARE v_PhuThuLoaiPhong DECIMAL(18,2);
-    DECLARE v_PhuThuNgayLe DECIMAL(18,2);
-    DECLARE v_GiaCuoiCung DECIMAL(18,2);
-
-    SELECT 
-        gv.GiaCoBan,
-        lp.PhuThu,
-        IFNULL(nl.PhuThu, 0)
-    INTO 
-        v_GiaCoBan,
-        v_PhuThuLoaiPhong,
-        v_PhuThuNgayLe
-    FROM SuatChieu sc
-    JOIN GiaVe_CoBan gv 
-        ON sc.MaGiaVe = gv.MaGiaVe
-    JOIN PhongChieu pc 
-        ON sc.MaPhong = pc.MaPhong
-    JOIN LoaiPhong lp 
-        ON pc.MaLoaiPhong = lp.MaLoaiPhong
-    LEFT JOIN NgayLe nl 
-        ON DATE(sc.GioBatDau) = nl.Ngay
-    WHERE sc.MaSuatChieu = p_MaSuatChieu;
-
-    SET v_GiaCuoiCung = v_GiaCoBan 
-                      + v_PhuThuLoaiPhong 
-                      + v_PhuThuNgayLe;
-
-    RETURN v_GiaCuoiCung;
-END$$
-
-DELIMITER $$
-
-CREATE FUNCTION fn_TinhDiemTichLuy(p_TongTien DECIMAL(18,2))
-RETURNS INT
-DETERMINISTIC
-BEGIN
-    RETURN FLOOR(p_TongTien / 10000);
 END$$
 
 DELIMITER ;
@@ -1097,5 +1102,5 @@ INSERT IGNORE INTO GiaVe_CoBan (KhungGio, LoaiNgay, GiaCoBan) VALUES
 ('08:00 - 23:00', 'Cuoi Tuan', 120000);
 
 INSERT INTO SuatChieu (MaPhim, MaPhong, MaGiaVe, MaLoaiPhong, GioBatDau, GioKetThuc) VALUES 
-(1, 1, 1, 1, CONCAT(CURDATE(), ' 08:30:00'), CONCAT(CURDATE(), ' 10:30:00')),
-(2, 2, 3, 2, CONCAT(CURDATE(), ' 19:00:00'), CONCAT(CURDATE(), ' 21:11:00'));
+(11, 1, 1, 1, CONCAT(CURDATE(), ' 08:30:00'), CONCAT(CURDATE(), ' 11:30:00')),
+(12, 2, 3, 2, CONCAT(CURDATE(), ' 19:00:00'), CONCAT(CURDATE(), ' 21:11:00'));
