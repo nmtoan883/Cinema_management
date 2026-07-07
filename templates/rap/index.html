@@ -3,23 +3,22 @@
 {% block content %}
 <div class="card">
     <div class="section-tabs">
-        <a href="{{ url_for('rap.index', section='cumrap') }}" class="section-tab {{ 'active' if active_section == 'cumrap' else '' }}">CumRap</a>
-        <a href="{{ url_for('rap.index', section='loaiphong') }}" class="section-tab {{ 'active' if active_section == 'loaiphong' else '' }}">LoaiPhong</a>
-        <a href="{{ url_for('rap.index', section='loaighe') }}" class="section-tab {{ 'active' if active_section == 'loaighe' else '' }}">LoaiGhe</a>
-        <a href="{{ url_for('rap.index', section='phongchieu') }}" class="section-tab {{ 'active' if active_section == 'phongchieu' else '' }}">PhongChieu</a>
-        <a href="{{ url_for('rap.index', section='ghe') }}" class="section-tab {{ 'active' if active_section == 'ghe' else '' }}">Ghe</a>
-        <a href="{{ url_for('rap.index', section='thongke') }}" class="section-tab {{ 'active' if active_section == 'thongke' else '' }}">ThongKe</a>
+        <a href="{{ url_for('rap.index', section='cumrap') }}" class="section-tab {{ 'active' if active_section == 'cumrap' else '' }}">Cụm Rạp</a>
+        <a href="{{ url_for('rap.index', section='loaiphong') }}" class="section-tab {{ 'active' if active_section == 'loaiphong' else '' }}">Loại Phòng</a>
+        <a href="{{ url_for('rap.index', section='loaighe') }}" class="section-tab {{ 'active' if active_section == 'loaighe' else '' }}">Loại Ghế</a>
+        <a href="{{ url_for('rap.index', section='phongchieu') }}" class="section-tab {{ 'active' if active_section == 'phongchieu' else '' }}">Phòng Chiếu</a>
+        <a href="{{ url_for('rap.index', section='ghe') }}" class="section-tab {{ 'active' if active_section == 'ghe' else '' }}">Ghế</a>
+        <a href="{{ url_for('rap.index', section='thongke') }}" class="section-tab {{ 'active' if active_section == 'thongke' else '' }}">Thống Kê</a>
     </div>
 
     {% if active_section == 'cumrap' %}
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Admin / CumRap</p>
-            <h1>Quan ly cum rap</h1>
-            <p class="section-copy">Khai bao chi nhanh rap voi ten rap, dia chi va hotline theo dung cau truc bang CumRap.</p>
-        </div>
+            <p class="eyebrow">Quản trị / Cụm Rạp</p>
+            <h1>Quản lý cụm rạp</h1>
+            </div>
         {% if cum_rap_editing_id %}
-        <a href="{{ url_for('rap.index') }}" class="btn btn-secondary">Tao moi</a>
+        <a href="{{ url_for('rap.index') }}" class="btn btn-secondary">Tạo mới</a>
         {% endif %}
     </div>
 
@@ -27,21 +26,21 @@
         <!-- Quản lý Cụm Rạp -->
         {% if session.chuc_vu == 'Admin' %}
         <section class="panel">
-            <h2>{{ 'Sửa Cum Rap' if cum_rap_form_data else 'Them Cum Rap' }}</h2>
+            <h2>{{ 'Sửa Cụm Rạp' if cum_rap_form_data else 'Thêm Cụm Rạp' }}</h2>
             <form method="post" action="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap_editing_id) if cum_rap_editing_id else url_for('rap.them_cum_rap') }}">
                 <div class="form-group">
-                    <label for="TenCumRap">Ten cum rap</label>
+                    <label for="TenCumRap">Tên cụm rạp</label>
                     <input id="TenCumRap" name="TenCumRap" type="text" value="{{ cum_rap_form_data.TenCumRap or '' }}" required>
                 </div>
                 <div class="form-group">
-                    <label for="DiaChi">Dia chi</label>
+                    <label for="DiaChi">Địa chỉ</label>
                     <input id="DiaChi" name="DiaChi" type="text" value="{{ cum_rap_form_data.DiaChi or '' }}" required>
                 </div>
                 <div class="form-group">
                     <label for="Hotline">Hotline</label>
                     <input id="Hotline" name="Hotline" type="text" value="{{ cum_rap_form_data.Hotline or '' }}" required>
                 </div>
-                <button type="submit" class="btn">{{ 'Luu thay doi' if cum_rap_editing_id else 'Them cum rap' }}</button>
+                <button type="submit" class="btn">{{ 'Lưu thay đổi' if cum_rap_editing_id else 'Thêm cụm rạp' }}</button>
             </form>
         </section>
         {% else %}
@@ -51,7 +50,7 @@
         {% endif %}
 
         <section class="panel">
-            <h2>Danh sach Cum Rap</h2>
+            <h2>Danh sách Cụm Rạp</h2>
             {% if ds_cum_rap %}
             <table>
                 <thead>
@@ -72,9 +71,9 @@
                         <td>{{ cum_rap.Hotline }}</td>
                         <td>
                             <div class="table-actions">
-                                <a href="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" class="btn btn-secondary">Sua</a>
-                                <form method="post" action="{{ url_for('rap.xoa_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" onsubmit="return confirm('Ban co chac muon xoa cum rap nay khong?');">
-                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                <a href="{{ url_for('rap.sua_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" class="btn btn-secondary">Sửa</a>
+                                <form method="post" action="{{ url_for('rap.xoa_cum_rap', ma_cum_rap=cum_rap.MaCumRap) }}" onsubmit="return confirm('Bạn có chắc muốn xóa cụm rạp này không?');">
+                                    <button type="submit" class="btn btn-danger">Xóa</button>
                                 </form>
                             </div>
                         </td>
@@ -83,39 +82,44 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state">Chua co du lieu cum rap.</p>
+            <p class="empty-state">Chưa có dữ liệu cụm rạp.</p>
             {% endif %}
         </section>
     </div>
     {% elif active_section == 'loaiphong' %}
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Admin / LoaiPhong</p>
-            <h1>Quan ly loai phong</h1>
-            <p class="section-copy">Khai bao cac loai phong nhu 2D, 3D, IMAX .</p>
+            <p class="eyebrow">Quản trị / Loại Phòng</p>
+            <h1>Quản lý loại phòng</h1>
         </div>
         {% if loai_phong_editing_id %}
-        <a href="{{ url_for('rap.index', section='loaiphong') }}" class="btn btn-secondary">Tao moi</a>
+        <a href="{{ url_for('rap.index', section='loaiphong') }}" class="btn btn-secondary">Tạo mới</a>
         {% endif %}
     </div>
 
     <div class="admin-grid">
         <section class="panel">
-            <h2>{{ 'Cap nhat loai phong' if loai_phong_editing_id else 'Them loai phong' }}</h2>
+            <h2>{{ 'Cập nhật loại phòng' if loai_phong_editing_id else 'Thêm loại phòng' }}</h2>
             <form method="post" action="{{ url_for('rap.sua_loai_phong', ma_loai_phong=loai_phong_editing_id) if loai_phong_editing_id else url_for('rap.them_loai_phong') }}">
                 <div class="form-group">
-                    <label for="TenLoaiPhong">Ten loai phong</label>
-                    <input id="TenLoaiPhong" name="TenLoaiPhong" type="text" value="{{ loai_phong_form_data.TenLoaiPhong or '' }}" required>
+                    <label for="TenLoaiPhong">Tên loại phòng</label>
+                    <select id="TenLoaiPhong" name="TenLoaiPhong" required>
+                        <option value="">-- Chọn loại phòng --</option>
+                        <option value="2D" {{ 'selected' if loai_phong_form_data.TenLoaiPhong == '2D' else '' }}>2D</option>
+                        <option value="3D" {{ 'selected' if loai_phong_form_data.TenLoaiPhong == '3D' else '' }}>3D</option>
+                        <option value="IMAX" {{ 'selected' if loai_phong_form_data.TenLoaiPhong == 'IMAX' else '' }}>IMAX</option>
+                        <option value="4D" {{ 'selected' if loai_phong_form_data.TenLoaiPhong == '4D' else '' }}>4D</option>
+                    </select>
                 </div>
 
                 
 
-                <button type="submit" class="btn">{{ 'Luu thay doi' if loai_phong_editing_id else 'Them loai phong' }}</button>
+                <button type="submit" class="btn">{{ 'Lưu thay đổi' if loai_phong_editing_id else 'Thêm loại phòng' }}</button>
             </form>
         </section>
 
         <section class="panel">
-            <h2>Danh sach loai phong</h2>
+            <h2>Danh sách loại phòng</h2>
             {% if ds_loai_phong %}
             <table>
                 <thead>
@@ -131,12 +135,12 @@
                     <tr>
                         <td>{{ loai_phong.MaLoaiPhong }}</td>
                         <td><strong>{{ loai_phong.TenLoaiPhong }}</strong></td>
-                        <td>0</td>
+                        <td>{{ loai_phong.PhuThu | int }}đ</td>
                         <td>
                             <div class="table-actions">
-                                <a href="{{ url_for('rap.sua_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" class="btn btn-secondary">Sua</a>
-                                <form method="post" action="{{ url_for('rap.xoa_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" onsubmit="return confirm('Ban co chac muon xoa loai phong nay khong?');">
-                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                <a href="{{ url_for('rap.sua_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" class="btn btn-secondary">Sửa</a>
+                                <form method="post" action="{{ url_for('rap.xoa_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" onsubmit="return confirm('Bạn có chắc muốn xóa loại phòng này không?');">
+                                    <button type="submit" class="btn btn-danger">Xóa</button>
                                 </form>
                             </div>
                         </td>
@@ -145,39 +149,38 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state">Chua co du lieu loai phong.</p>
+            <p class="empty-state">Chưa có dữ liệu loại phòng.</p>
             {% endif %}
         </section>
     </div>
     {% elif active_section == 'loaighe' %}
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Admin / LoaiGhe</p>
-            <h1>Quan ly loai ghe</h1>
-            <p class="section-copy">Khai bao cac loai ghe nhu Thuong, VIP, Sweetbox .</p>
-        </div>
+            <p class="eyebrow">Quản trị / Loại Ghế</p>
+            <h1>Quản lý loại ghế</h1>
+            </div>
         {% if loai_ghe_editing_id %}
-        <a href="{{ url_for('rap.index', section='loaighe') }}" class="btn btn-secondary">Tao moi</a>
+        <a href="{{ url_for('rap.index', section='loaighe') }}" class="btn btn-secondary">Tạo mới</a>
         {% endif %}
     </div>
 
     <div class="admin-grid">
         <section class="panel">
-            <h2>{{ 'Cap nhat loai ghe' if loai_ghe_editing_id else 'Them loai ghe' }}</h2>
+            <h2>{{ 'Cập nhật loại ghế' if loai_ghe_editing_id else 'Thêm loại ghế' }}</h2>
             <form method="post" action="{{ url_for('rap.sua_loai_ghe', ma_loai_ghe=loai_ghe_editing_id) if loai_ghe_editing_id else url_for('rap.them_loai_ghe') }}">
                 <div class="form-group">
-                    <label for="TenLoai">Ten loai ghe</label>
+                    <label for="TenLoai">Tên loại ghế</label>
                     <input id="TenLoai" name="TenLoai" type="text" value="{{ loai_ghe_form_data.TenLoai or '' }}" required>
                 </div>
 
                 
 
-                <button type="submit" class="btn">{{ 'Luu thay doi' if loai_ghe_editing_id else 'Them loai ghe' }}</button>
+                <button type="submit" class="btn">{{ 'Lưu thay đổi' if loai_ghe_editing_id else 'Thêm loại ghế' }}</button>
             </form>
         </section>
 
         <section class="panel">
-            <h2>Danh sach loai ghe</h2>
+            <h2>Danh sách loại ghế</h2>
             {% if ds_loai_ghe %}
             <table>
                 <thead>
@@ -193,12 +196,12 @@
                     <tr>
                         <td>{{ loai_ghe.MaLoaiGhe }}</td>
                         <td><strong>{{ loai_ghe.TenLoai }}</strong></td>
-                        <td>0</td>
+                        <td>{{ loai_ghe.PhuThu | int }}đ</td>
                         <td>
                             <div class="table-actions">
-                                <a href="{{ url_for('rap.sua_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" class="btn btn-secondary">Sua</a>
-                                <form method="post" action="{{ url_for('rap.xoa_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" onsubmit="return confirm('Ban co chac muon xoa loai ghe nay khong?');">
-                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                <a href="{{ url_for('rap.sua_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" class="btn btn-secondary">Sửa</a>
+                                <form method="post" action="{{ url_for('rap.xoa_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" onsubmit="return confirm('Bạn có chắc muốn xóa loại ghế này không?');">
+                                    <button type="submit" class="btn btn-danger">Xóa</button>
                                 </form>
                             </div>
                         </td>
@@ -207,37 +210,36 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state">Chua co du lieu loai ghe.</p>
+            <p class="empty-state">Chưa có dữ liệu loại ghế.</p>
             {% endif %}
         </section>
     </div>
     {% elif active_section == 'phongchieu' %}
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Admin / PhongChieu</p>
-            <h1>Quan ly phong chieu</h1>
-            <p class="section-copy">Tao phong chieu gan voi cum rap va loai phong, dong thoi khai bao suc chua theo bang PhongChieu.</p>
-        </div>
+            <p class="eyebrow">Quản trị / Phòng Chiếu</p>
+            <h1>Quản lý phòng chiếu</h1>
+            </div>
         {% if phong_chieu_editing_id %}
-        <a href="{{ url_for('rap.index', section='phongchieu') }}" class="btn btn-secondary">Tao moi</a>
+        <a href="{{ url_for('rap.index', section='phongchieu') }}" class="btn btn-secondary">Tạo mới</a>
         {% endif %}
     </div>
 
     <div class="admin-grid">
         {% if phong_chieu_editing_id %}
         <section class="panel">
-            <h2>Cap nhat phong chieu</h2>
+            <h2>Cập nhật phòng chiếu</h2>
             <form method="post" action="{{ url_for('rap.sua_phong_chieu', ma_phong=phong_chieu_editing_id) if phong_chieu_editing_id else url_for('rap.them_phong_chieu') }}">
                 <div class="form-group">
-                    <label for="TenPhong">Ten phong</label>
+                    <label for="TenPhong">Tên phòng</label>
                     <input id="TenPhong" name="TenPhong" type="text" value="{{ phong_chieu_form_data.TenPhong or '' }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="MaCumRap">Cum rap</label>
+                    <label for="MaCumRap">Cụm rạp</label>
                     {% if session.chuc_vu == 'Admin' %}
                         <select id="MaCumRap" name="MaCumRap" required>
-                            <option value="">-- Chon cum rap --</option>
+                            <option value="">-- Chọn cụm rạp --</option>
                             {% for rap in ds_cum_rap %}
                                 <option value="{{ rap.MaCumRap }}" {{ 'selected' if phong_chieu_form_data.MaCumRap == rap.MaCumRap else '' }}>
                                     {{ rap.TenCumRap }}
@@ -258,32 +260,32 @@
 
 
                 <div class="form-group">
-                    <label for="SoHang">So hang</label>
+                    <label for="SoHang">Số hàng</label>
                     <input id="SoHang" name="SoHang" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SoHang or '10' }}" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="SoCot">So ghe moi hang</label>
+                    <label for="SoCot">Số ghế mỗi hàng</label>
                     <input id="SoCot" name="SoCot" type="number" min="1" step="1" value="{{ phong_chieu_form_data.SoCot or '10' }}" required>
                 </div>
 
-                <button type="submit" class="btn">{{ 'Luu thay doi' if phong_chieu_editing_id else 'Them phong chieu' }}</button>
+                <button type="submit" class="btn">{{ 'Lưu thay đổi' if phong_chieu_editing_id else 'Thêm phòng chiếu' }}</button>
             </form>
         </section>
         {% else %}
         <section class="panel">
-            <h2>Tao phong va sinh ghe</h2>
+            <h2>Tạo phòng và sinh ghế</h2>
             <form method="post" action="{{ url_for('rap.tao_phong_va_sinh_ghe') }}">
                 <div class="form-group">
-                    <label for="TenPhongAuto">Ten phong (Nhập nhiều phòng cách nhau bởi dấu phẩy, vd: P01, P02)</label>
+                    <label for="TenPhongAuto">Tên phòng (Nhập nhiều phòng cách nhau bởi dấu phẩy, vd: P01, P02)</label>
                     <input id="TenPhongAuto" name="TenPhong" type="text" placeholder="P01, P02, P03" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="MaCumRapAuto">Cum rap</label>
+                    <label for="MaCumRapAuto">Cụm rạp</label>
                     {% if session.chuc_vu == 'Admin' %}
                         <select id="MaCumRapAuto" name="MaCumRap" required>
-                            <option value="">-- Chon cum rap --</option>
+                            <option value="">-- Chọn cụm rạp --</option>
                             {% for rap in ds_cum_rap %}
                                 <option value="{{ rap.MaCumRap }}">{{ rap.TenCumRap }}</option>
                             {% endfor %}
@@ -302,19 +304,19 @@
 
 
                 <div class="form-group">
-                    <label for="SoHangAuto">So hang</label>
+                    <label for="SoHangAuto">Số hàng</label>
                     <input id="SoHangAuto" name="SoHang" type="number" min="1" step="1" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="SoCotAuto">So ghe moi hang</label>
+                    <label for="SoCotAuto">Số ghế mỗi hàng</label>
                     <input id="SoCotAuto" name="SoCot" type="number" min="1" step="1" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="MaLoaiGheMacDinh">Loai ghe mac dinh</label>
+                    <label for="MaLoaiGheMacDinh">Loại ghế mặc định</label>
                     <select id="MaLoaiGheMacDinh" name="MaLoaiGheMacDinh" required>
-                        <option value="">Chon loai ghe</option>
+                        <option value="">Chọn loại ghế</option>
                         <option value="0" class="extracted-style-1037">(Phòng trống - Không sinh ghế)</option>
                         {% for loai_ghe in ds_loai_ghe %}
                         <option value="{{ loai_ghe.MaLoaiGhe }}">{{ loai_ghe.TenLoai }}</option>
@@ -328,7 +330,7 @@
         {% endif %}
 
         <section class="panel panel-span-2">
-            <h2>Danh sach phong chieu</h2>
+            <h2>Danh sách phòng chiếu</h2>
             {% if ds_phong_chieu %}
             <table>
                 <thead>
@@ -348,14 +350,15 @@
                         <td>{{ phong.MaPhong }}</td>
                         <td><strong>{{ phong.TenPhong }}</strong></td>
                         <td>{{ phong.TenCumRap }}</td>
+                        <td>{{ phong.TenLoaiPhong }}</td>
                         <td>{{ phong.SoHang }} x {{ phong.SoCot }}</td>
                         <td>{{ phong.SucChua }}</td>
                         <td>
                             <div class="table-actions">
                                 <button type="button" class="btn btn-secondary extracted-style-1038" onclick="showSeatMap({{ phong.MaPhong }}, '{{ phong.TenPhong }}')">Sơ đồ</button>
-                                <a href="{{ url_for('rap.sua_phong_chieu', ma_phong=phong.MaPhong) }}" class="btn btn-secondary">Sua</a>
-                                <form method="post" action="{{ url_for('rap.xoa_phong_chieu', ma_phong=phong.MaPhong) }}" onsubmit="return confirm('Ban co chac muon xoa phong chieu nay khong?');">
-                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                <a href="{{ url_for('rap.sua_phong_chieu', ma_phong=phong.MaPhong) }}" class="btn btn-secondary">Sửa</a>
+                                <form method="post" action="{{ url_for('rap.xoa_phong_chieu', ma_phong=phong.MaPhong) }}" onsubmit="return confirm('Bạn có chắc muốn xóa phòng chiếu này không?');">
+                                    <button type="submit" class="btn btn-danger">Xóa</button>
                                 </form>
                             </div>
                         </td>
@@ -364,35 +367,34 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state">Chua co du lieu phong chieu.</p>
+            <p class="empty-state">Chưa có dữ liệu phòng chiếu.</p>
             {% endif %}
         </section>
     </div>
     {% elif active_section == 'ghe' %}
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Admin / Ghe</p>
-            <h1>Quan ly ghe</h1>
-            <p class="section-copy">Khai bao ma ghe, phong chieu va loai ghe theo dung bang Ghe, dong thoi ton trong suc chua cua phong.</p>
-        </div>
+            <p class="eyebrow">Quản trị / Ghế</p>
+            <h1>Quản lý ghế</h1>
+            </div>
         {% if ghe_editing_id %}
-        <a href="{{ url_for('rap.index', section='ghe') }}" class="btn btn-secondary">Tao moi</a>
+        <a href="{{ url_for('rap.index', section='ghe') }}" class="btn btn-secondary">Tạo mới</a>
         {% endif %}
     </div>
 
     <div class="admin-grid">
         <section class="panel">
-            <h2>{{ 'Cap nhat ghe' if ghe_editing_id else 'Them ghe' }}</h2>
+            <h2>{{ 'Cập nhật ghế' if ghe_editing_id else 'Thêm ghế' }}</h2>
             <form method="post" action="{{ url_for('rap.sua_ghe', ma_ghe=ghe_editing_id) if ghe_editing_id else url_for('rap.them_ghe') }}">
                 <div class="form-group">
-                    <label for="TenGhe">Ten ghe</label>
+                    <label for="TenGhe">Tên ghế</label>
                     <input id="TenGhe" name="TenGhe" type="text" value="{{ ghe_form_data.TenGhe or '' }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="MaPhongGhe">Phong chieu</label>
+                    <label for="MaPhongGhe">Phòng chiếu</label>
                     <select id="MaPhongGhe" name="MaPhong" required>
-                        <option value="">Chon phong chieu</option>
+                        <option value="">Chọn phòng chiếu</option>
                         {% for phong in ds_phong_chieu %}
                         <option value="{{ phong.MaPhong }}" {{ 'selected' if ghe_form_data.MaPhong == phong.MaPhong else '' }}>
                             {{ phong.TenPhong }} - {{ phong.TenCumRap }}
@@ -402,9 +404,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="MaLoaiGheForm">Loai ghe</label>
+                    <label for="MaLoaiGheForm">Loại ghế</label>
                     <select id="MaLoaiGheForm" name="MaLoaiGhe" required>
-                        <option value="">Chon loai ghe</option>
+                        <option value="">Chọn loại ghế</option>
                         {% for loai_ghe in ds_loai_ghe %}
                         <option value="{{ loai_ghe.MaLoaiGhe }}" {{ 'selected' if ghe_form_data.MaLoaiGhe == loai_ghe.MaLoaiGhe else '' }}>
                             {{ loai_ghe.TenLoai }}
@@ -413,12 +415,12 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn">{{ 'Luu thay doi' if ghe_editing_id else 'Them ghe' }}</button>
+                <button type="submit" class="btn">{{ 'Lưu thay đổi' if ghe_editing_id else 'Thêm ghế' }}</button>
             </form>
         </section>
 
         <section class="panel">
-            <h2>Danh sach ghe</h2>
+            <h2>Danh sách ghế</h2>
             <div class="filter-bar extracted-style-1039">
                 <form method="GET" action="{{ url_for('rap.index') }}" class="extracted-style-1040">
                     <input type="hidden" name="section" value="ghe">
@@ -470,9 +472,9 @@
                         <td>{{ ghe.TenLoai }}</td>
                         <td>
                             <div class="table-actions">
-                                <a href="{{ url_for('rap.sua_ghe', ma_ghe=ghe.MaGhe) }}" class="btn btn-secondary">Sua</a>
-                                <form method="post" action="{{ url_for('rap.xoa_ghe', ma_ghe=ghe.MaGhe) }}" onsubmit="return confirm('Ban co chac muon xoa ghe nay khong?');">
-                                    <button type="submit" class="btn btn-danger">Xoa</button>
+                                <a href="{{ url_for('rap.sua_ghe', ma_ghe=ghe.MaGhe) }}" class="btn btn-secondary">Sửa</a>
+                                <form method="post" action="{{ url_for('rap.xoa_ghe', ma_ghe=ghe.MaGhe) }}" onsubmit="return confirm('Bạn có chắc muốn xóa ghế này không?');">
+                                    <button type="submit" class="btn btn-danger">Xóa</button>
                                 </form>
                             </div>
                         </td>
@@ -504,7 +506,7 @@
             {% endif %}
 
             {% else %}
-            <p class="empty-state">Chua co du lieu ghe.</p>
+            <p class="empty-state">Chưa có dữ liệu ghế.</p>
             {% endif %}
         </section>
     </div>
@@ -513,8 +515,7 @@
         <div>
             <p class="eyebrow">Quản trị / Thống kê</p>
             <h1>Thống kê cụm rạp</h1>
-            <p class="section-copy">Báo cáo tổng hợp số lượng phòng chiếu và tổng sức chứa của từng cụm rạp trên toàn hệ thống.</p>
-        </div>
+            </div>
     </div>
 
     <section class="panel">

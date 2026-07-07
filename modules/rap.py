@@ -59,6 +59,13 @@ def _loai_phong_da_ton_tai(ten_loai_phong, ma_loai_phong=None):
         params.append(ma_loai_phong)
 
     return bool(database.fetch_all(query, tuple(params)))
+def _kiem_tra_trung_lap(table_name, column_name, value, id_column=None, id_value=None):
+    query = f"SELECT 1 FROM {table_name} WHERE {column_name} = %s"
+    params = [value]
+    if id_column is not None and id_value is not None:
+        query += f" AND {id_column} <> %s"
+        params.append(id_value)
+    return bool(database.fetch_all(query, tuple(params)))
 
 
 def _du_lieu_loai_phong_hop_le(ten_loai_phong, ma_loai_phong=None):
@@ -195,27 +202,34 @@ def _vuot_suc_chua_phong(ma_phong, ma_ghe=None):
 
 def _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe, ma_ghe=None):
     if not ten_ghe or not ma_phong or not ma_loai_ghe:
-        return None, None, 'Vui long nhap day du ten ghe, phong chieu va loai ghe.'
+        return None, None, None, None, 'Vui long nhap day du ten ghe, phong chieu va loai ghe.'
+
+    import re
+    match = re.match(r'^([A-Za-z]+)(\d+)$', ten_ghe)
+    if not match:
+        return None, None, None, None, 'Tên ghế không đúng định dạng (Ví dụ: A1, B12).'
+    hang = match.group(1).upper()
+    cot = int(match.group(2))
 
     try:
         ma_phong_value = int(ma_phong)
         ma_loai_ghe_value = int(ma_loai_ghe)
     except ValueError:
-        return None, None, 'Phong chieu va loai ghe phai la gia tri hop le.'
+        return None, None, None, None, 'Phong chieu va loai ghe phai la gia tri hop le.'
 
     if not _phong_hop_le(ma_phong_value):
-        return None, None, 'Phong chieu khong ton tai.'
+        return None, None, None, None, 'Phong chieu khong ton tai.'
 
     if not _loai_ghe_hop_le(ma_loai_ghe_value):
-        return None, None, 'Loai ghe khong ton tai.'
+        return None, None, None, None, 'Loai ghe khong ton tai.'
 
     if _ghe_da_ton_tai(ten_ghe, ma_phong_value, ma_ghe):
-        return None, None, 'Ten ghe da ton tai trong phong chieu nay.'
+        return None, None, None, None, 'Ten ghe da ton tai trong phong chieu nay.'
 
     if _vuot_suc_chua_phong(ma_phong_value, ma_ghe):
-        return None, None, 'So luong ghe vuot qua suc chua da khai bao cua phong chieu.'
+        return None, None, None, None, 'So luong ghe vuot qua suc chua da khai bao cua phong chieu.'
 
-    return ma_phong_value, ma_loai_ghe_value, None
+    return ma_phong_value, ma_loai_ghe_value, hang, cot, None
 
 
 def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_rap_editing_id=None,
@@ -262,12 +276,15 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
                 pc.MaPhong,
                 pc.TenPhong,
                 pc.MaCumRap,
+                pc.MaLoaiPhong,
                 pc.SoHang,
                 pc.SoCot,
                 pc.SucChua,
-                cr.TenCumRap
+                cr.TenCumRap,
+                lp.TenLoaiPhong
             FROM PhongChieu pc
             JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
+            JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
             ORDER BY pc.MaPhong ASC
             """
         )
@@ -278,12 +295,15 @@ def _tao_context_quan_ly(active_section='cumrap', cum_rap_form_data=None, cum_ra
                 pc.MaPhong,
                 pc.TenPhong,
                 pc.MaCumRap,
+                pc.MaLoaiPhong,
                 pc.SoHang,
                 pc.SoCot,
                 pc.SucChua,
-                cr.TenCumRap
+                cr.TenCumRap,
+                lp.TenLoaiPhong
             FROM PhongChieu pc
             JOIN CumRap cr ON pc.MaCumRap = cr.MaCumRap
+            JOIN LoaiPhong lp ON pc.MaLoaiPhong = lp.MaLoaiPhong
             WHERE pc.MaCumRap = %s
             ORDER BY pc.MaPhong ASC
             """, (session.get('ma_cum_rap'),)
@@ -887,17 +907,17 @@ def them_ghe():
             flash('Bạn không có quyền thêm ghế cho phòng chiếu của rạp khác', 'error')
             return redirect(url_for('rap.index', section='ghe'))
 
-    ma_phong_value, ma_loai_ghe_value, loi = _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe)
+    ma_phong_value, ma_loai_ghe_value, hang, cot, loi = _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe)
     if loi:
         flash(loi, 'error')
         return redirect(url_for('rap.index', section='ghe'))
 
     success = database.execute_query(
         """
-        INSERT INTO Ghe (TenGhe, MaPhong, MaLoaiGhe)
-        VALUES (%s, %s, %s)
+        INSERT INTO Ghe (TenGhe, MaPhong, MaLoaiGhe, Hang, Cot)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (ten_ghe, ma_phong_value, ma_loai_ghe_value),
+        (ten_ghe, ma_phong_value, ma_loai_ghe_value, hang, cot),
     )
 
     if success:
@@ -931,7 +951,7 @@ def sua_ghe(ma_ghe):
                 flash('Bạn không có quyền chuyển ghế sang rạp khác', 'error')
                 return redirect(url_for('rap.index', section='ghe'))
 
-        ma_phong_value, ma_loai_ghe_value, loi = _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe, ma_ghe)
+        ma_phong_value, ma_loai_ghe_value, hang, cot, loi = _du_lieu_ghe_hop_le(ten_ghe, ma_phong, ma_loai_ghe, ma_ghe)
         if loi:
             flash(loi, 'error')
             return redirect(url_for('rap.sua_ghe', ma_ghe=ma_ghe))
@@ -939,10 +959,10 @@ def sua_ghe(ma_ghe):
         success = database.execute_query(
             """
             UPDATE Ghe
-            SET TenGhe = %s, MaPhong = %s, MaLoaiGhe = %s
+            SET TenGhe = %s, MaPhong = %s, MaLoaiGhe = %s, Hang = %s, Cot = %s
             WHERE MaGhe = %s
             """,
-            (ten_ghe, ma_phong_value, ma_loai_ghe_value, ma_ghe),
+            (ten_ghe, ma_phong_value, ma_loai_ghe_value, hang, cot, ma_ghe),
         )
 
         if success:

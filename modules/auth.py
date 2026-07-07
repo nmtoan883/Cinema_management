@@ -54,17 +54,16 @@ def register():
             flash('Số điện thoại này đã được đăng ký!', 'error')
             return redirect(url_for('auth.register'))
             
-        try:
-            # MaHang = 1 là hạng mặc định (Member Đồng)
-            insert_query = """
-                INSERT INTO KhachHang (HoTen, SDT, Email, MatKhau, MaHang) 
-                VALUES (%s, %s, %s, %s, 1)
-            """
-            database.execute_query(insert_query, (ho_ten, sdt, email, mat_khau))
+        # MaHang = 1 là hạng mặc định (Member Đồng)
+        insert_query = """
+            INSERT INTO KhachHang (HoTen, SDT, Email, MatKhau, MaHang) 
+            VALUES (%s, %s, %s, %s, 1)
+        """
+        if database.execute_query(insert_query, (ho_ten, sdt, email, mat_khau)):
             flash('Đăng ký tài khoản thành công! Vui lòng đăng nhập.', 'success')
             return redirect(url_for('auth.login'))
-        except Exception as e:
-            flash(f'Có lỗi xảy ra: {str(e)}', 'error')
+        else:
+            flash('Có lỗi xảy ra khi lưu thông tin đăng ký vào cơ sở dữ liệu.', 'error')
             
     return render_template('auth/register.html')
 
