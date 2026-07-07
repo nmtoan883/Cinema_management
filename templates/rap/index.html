@@ -56,11 +56,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten cum rap</th>
-                        <th>Dia chi</th>
+                        <th>ID</th>
+                        <th>Tên Cụm Rạp</th>
+                        <th>Địa Chỉ</th>
                         <th>Hotline</th>
-                        <th>Tac vu</th>
+                        <th>Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,10 +120,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten loai phong</th>
-                        
-                        <th>Tac vu</th>
+                        <th>ID</th>
+                        <th>Loại Phòng</th>
+                        <th>Phụ Thu</th>
+                        <th>Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,7 +131,7 @@
                     <tr>
                         <td>{{ loai_phong.MaLoaiPhong }}</td>
                         <td><strong>{{ loai_phong.TenLoaiPhong }}</strong></td>
-                        
+                        <td>0</td>
                         <td>
                             <div class="table-actions">
                                 <a href="{{ url_for('rap.sua_loai_phong', ma_loai_phong=loai_phong.MaLoaiPhong) }}" class="btn btn-secondary">Sua</a>
@@ -182,10 +182,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten loai ghe</th>
-                        
-                        <th>Tac vu</th>
+                        <th>ID</th>
+                        <th>Tên Loại Ghế</th>
+                        <th>Phụ Thu</th>
+                        <th>Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,7 +193,7 @@
                     <tr>
                         <td>{{ loai_ghe.MaLoaiGhe }}</td>
                         <td><strong>{{ loai_ghe.TenLoai }}</strong></td>
-                        
+                        <td>0</td>
                         <td>
                             <div class="table-actions">
                                 <a href="{{ url_for('rap.sua_loai_ghe', ma_loai_ghe=loai_ghe.MaLoaiGhe) }}" class="btn btn-secondary">Sua</a>
@@ -333,13 +333,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten phong</th>
-                        <th>Cum rap</th>
-
-                        <th>Kich thuoc (Hang x Cot)</th>
-                        <th>Suc chua</th>
-                        <th>Thao tac</th>
+                        <th>ID</th>
+                        <th>Tên Phòng</th>
+                        <th>Thuộc Cụm Rạp</th>
+                        <th>Loại Phòng</th>
+                        <th>Kích Thước (Hàng x Cột)</th>
+                        <th>Sức Chứa</th>
+                        <th>Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -452,12 +452,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten ghe</th>
+                        <th>ID</th>
+                        <th>Tên Ghế</th>
                         <th>Cơ sở</th>
                         <th>Phòng chiếu</th>
-                        <th>Loai ghe</th>
-                        <th>Tac vu</th>
+                        <th>Loại Ghế</th>
+                        <th>Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -523,12 +523,12 @@
         <table>
             <thead>
                 <tr>
-                    <th>Ma</th>
-                    <th>Ten cum rap</th>
-                    <th>Dia chi</th>
+                    <th>ID</th>
+                    <th>Tên Cơ Sở</th>
+                    <th>Địa Chỉ</th>
                     <th>Hotline</th>
-                    <th>Tong so phong</th>
-                    <th>Tong suc chua</th>
+                    <th>Tổng Số Phòng</th>
+                    <th>Tổng Sức Chứa</th>
                 </tr>
             </thead>
             <tbody>
