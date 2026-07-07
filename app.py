@@ -11,7 +11,6 @@ from modules.nhan_vien import nhan_vien_bp
 from modules.api_v1 import api_v1_bp
 from modules.dich_vu import dich_vu_bp
 from modules.gia_ve import gia_ve_bp
-from modules.bao_cao import bao_cao_bp
 
 app = Flask(__name__)
 app.secret_key = 'cinema-management-secret-key'
@@ -26,7 +25,6 @@ app.register_blueprint(nhan_vien_bp)
 app.register_blueprint(api_v1_bp, url_prefix='/api/v1')
 app.register_blueprint(dich_vu_bp, url_prefix='/dichvu')
 app.register_blueprint(gia_ve_bp, url_prefix='/giave')
-app.register_blueprint(bao_cao_bp, url_prefix='/baocao')
 
 @app.context_processor
 def inject_user():
