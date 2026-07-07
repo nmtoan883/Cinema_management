@@ -6,7 +6,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        username = request.form.get('username', '').strip()
         password = request.form.get('password')
         
         # 1. Kiểm tra Khách Hàng trước (Dùng Số Điện Thoại làm Tên đăng nhập)
