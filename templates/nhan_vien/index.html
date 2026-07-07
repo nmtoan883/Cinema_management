@@ -1,14 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="header">
-    <h1>Quản lý Nhân Viên</h1>
+<div class="header-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2><i class="fas fa-users-cog"></i> QUẢN LÝ NHÂN VIÊN</h2>
 </div>
 
-<div class="grid inline-style-127" >
-    <!-- Form Thêm / Sửa Nhân Viên -->
-    <section class="card">
-        <h2>{{ 'Cập nhật Nhân Viên' if nhan_vien_form else 'Thêm Nhân Viên Mới' }}</h2>
+<div class="content-section">
+    <div class="tabs">
+        <button class="tab-link {{ '' if nhan_vien_form else 'current' }}" data-tab="danhsach">Danh sách Tài Khoản</button>
+        <button class="tab-link {{ 'current' if nhan_vien_form else '' }}" data-tab="themmoi">{{ 'Cập nhật Nhân Viên' if nhan_vien_form else 'Thêm Nhân Viên Mới' }}</button>
+    </div>
+
+    <!-- TAB 2: Thêm / Sửa Nhân Viên -->
+    <div id="themmoi" class="tab-content {{ 'current' if nhan_vien_form else '' }}">
+        <section class="card">
+            <h2 style="margin-bottom: 1.5rem; color: white;">{{ 'Cập nhật Nhân Viên' if nhan_vien_form else 'Thêm Nhân Viên Mới' }}</h2>
         <form method="post" action="{{ url_for('nhan_vien.sua_nhan_vien', ma_nv=nhan_vien_form.MaNV) if nhan_vien_form else url_for('nhan_vien.them_nhan_vien') }}">
             <div class="form-group">
                 <label for="HoTen">Họ Tên</label>
@@ -65,18 +71,20 @@
                 {% endif %}
             </div>
 
-            <div class="inline-style-95" >
-                <button type="submit" class="btn">{{ 'Lưu thay đổi' if nhan_vien_form else 'Tạo tài khoản' }}</button>
+            <div class="form-actions" style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">{{ 'Lưu Thay Đổi' if nhan_vien_form else 'Tạo Tài Khoản' }}</button>
                 {% if nhan_vien_form %}
-                <a href="{{ url_for('nhan_vien.index') }}" class="btn btn-secondary inline-style-128" >Hủy</a>
+                <a href="{{ url_for('nhan_vien.index') }}" class="btn btn-secondary">Hủy</a>
                 {% endif %}
             </div>
         </form>
     </section>
+    </div>
 
-    <!-- Danh sách Nhân Viên -->
+    <!-- TAB 1: Danh sách Nhân Viên -->
+    <div id="danhsach" class="tab-content {{ '' if nhan_vien_form else 'current' }}">
     <section class="card">
-        <h2>Danh sách Tài khoản</h2>
+        <h2 style="margin-bottom: 1.5rem; color: white;">Danh sách Tài khoản</h2>
         <div class="inline-style-129" >
             <table class="table">
                 <thead>
@@ -100,6 +108,7 @@
                             <td>{{ nv.TenCumRap }}</td>
                             <td>
                                 <div class="table-actions">
+                                <div class="table-actions">
                                     <a href="{{ url_for('nhan_vien.sua_nhan_vien', ma_nv=nv.MaNV) }}" class="btn btn-secondary">Sửa</a>
                                     {% if session.user_id != nv.MaNV %}
                                     <form method="post" action="{{ url_for('nhan_vien.xoa_nhan_vien', ma_nv=nv.MaNV) }}" onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản nhân viên này không?');">
@@ -119,5 +128,30 @@
             </table>
         </div>
     </section>
+    </div>
 </div>
+
+{% block scripts %}
+<script>
+    // Tab Switching Logic
+    document.querySelectorAll('.tab-link').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('current'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('current'));
+            
+            button.classList.add('current');
+            document.getElementById(button.dataset.tab).classList.add('current');
+            
+            // Cập nhật URL hash
+            window.location.hash = button.dataset.tab;
+        });
+    });
+
+    // Tự động chuyển tab nếu có URL hash
+    if (window.location.hash) {
+        let hash = window.location.hash.substring(1);
+        let tab = document.querySelector('.tab-link[data-tab="' + hash + '"]');
+        if (tab) tab.click();
+    }
+</script>
 {% endblock %}
