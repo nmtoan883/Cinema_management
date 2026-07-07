@@ -6,7 +6,7 @@
     <title>{{ title }} - Hệ Thống Rạp Chiếu Phim</title>
     <meta name="description" content="Hệ thống quản lý rạp chiếu phim hiện đại">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='extracted_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='extracted_styles.css') }}?v=1.2">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <!-- Select2 CSS -->
@@ -59,6 +59,8 @@
                             showConfirmButton: false,
                             timer: 5000,
                             timerProgressBar: true,
+                            background: '#1e293b',
+                            color: '#f8fafc',
                             didOpen: (toast) => {
                                 toast.onmouseenter = Swal.stopTimer;
                                 toast.onmouseleave = Swal.resumeTimer;

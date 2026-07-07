@@ -251,11 +251,10 @@
 }
 
 .inline-style-60 {
-    color: var(--primary); margin-bottom: 0.5rem;
+    color: white; margin-bottom: 0.5rem; font-size: 2rem; font-weight: 800;
 }
-
 .inline-style-61 {
-    color: var(--text-muted); margin-bottom: 2rem;
+    color: #9ca3af; margin-bottom: 2rem;
 }
 
 .inline-style-62 {
@@ -275,7 +274,10 @@
 }
 
 .inline-style-66 {
-    background: transparent; color: var(--primary); border: 1px solid var(--primary); margin-top: 0.5rem; width: 100%;
+    background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255,255,255,0.2); margin-top: 0.5rem; width: 100%; transition: all 0.3s;
+}
+.inline-style-66:hover {
+    background: rgba(255, 255, 255, 0.1); border-color: white;
 }
 
 .inline-style-67 {
@@ -283,7 +285,7 @@
 }
 
 .inline-style-68 {
-    color: var(--primary); margin-bottom: 1.5rem; text-align: center;
+    color: white; margin-bottom: 2rem; text-align: center; font-size: 2rem; font-weight: 800;
 }
 
 .inline-style-69 {
